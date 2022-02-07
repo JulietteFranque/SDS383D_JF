@@ -1,220 +1,802 @@
-  \documentclass{homework}
+\documentclass[12pt]{amsart}
 
-%\geometry{showframe}% for debugging purposes -- displays the margins
+\usepackage[T1]{fontenc}
+\usepackage{newpxtext}
+\usepackage{newpxmath}
 
-\newcommand{\E}{\mbox{E}}
 
+\addtolength{\hoffset}{-2.25cm}
+\addtolength{\textwidth}{4.5cm}
+\addtolength{\voffset}{-2.5cm}
+\addtolength{\textheight}{5cm}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{15pt}
+\usepackage{amsthm}
 \usepackage{amsmath}
-%\usepackage[garamond]{mathdesign}
-\usepackage{url}
-
-% Set up the images/graphics package
+\usepackage{amssymb}
+\usepackage[colorlinks = true, linkcolor = black, citecolor = black, final]{hyperref}
 \usepackage{graphicx}
-\setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
-\graphicspath{{graphics/}}
-
-\title[Lesson 1 $\cdot$ SDS 383D]{Exercises 1: Preliminaries}
-%\author[ ]{ }
-\date{}  % if the \date{} command is left out, the current date will be used
-
-% The following package makes prettier tables.  We're all about the bling!
-\usepackage{booktabs}
-
-% The units package provides nice, non-stacked fractions and better spacing
-% for units.
-\usepackage{units}
-
-% The fancyvrb package lets us customize the formatting of verbatim
-% environments.  We use a slightly smaller font.
-\usepackage{fancyvrb}
-\fvset{fontsize=\normalsize}
-
-% Small sections of multiple columns
 \usepackage{multicol}
+\usepackage{ marvosym }
+\newcommand{\ds}{\displaystyle}
+\pagestyle{myheadings}
+\setlength{\parindent}{0in}
 
-% Provides paragraphs of dummy text
-\usepackage{lipsum}
-
-% These commands are used to pretty-print LaTeX commands
-\newcommand{\doccmd}[1]{\texttt{\textbackslash#1}}% command name -- adds backslash automatically
-\newcommand{\docopt}[1]{\ensuremath{\langle}\textrm{\textit{#1}}\ensuremath{\rangle}}% optional command argument
-\newcommand{\docarg}[1]{\textrm{\textit{#1}}}% (required) command argument
-\newenvironment{docspec}{\begin{quote}\noindent}{\end{quote}}% command specification environment
-\newcommand{\docenv}[1]{\textsf{#1}}% environment name
-\newcommand{\docpkg}[1]{\texttt{#1}}% package name
-\newcommand{\doccls}[1]{\texttt{#1}}% document class name
-\newcommand{\docclsopt}[1]{\texttt{#1}}% document class option name
-
-\newcommand{\N}{\mbox{N}}
-\newcommand{\thetahat}{\hat{\theta}}
-\newcommand{\sigmahat}{\hat{\sigma}}
-\newcommand{\betahat}{\hat{\beta}}
-
+\pagestyle{empty}
 
 \begin{document}
 
-\maketitle% this prints the handout title, author, and date
+\thispagestyle{empty}
 
-\section{Bayesian inference in simple conjugate families}
+{\scshape SDS383D} \hfill {\scshape \Large Exercises \#1} \hfill {\scshape Juliette F}
+ \medskip
+\hrule
+\bigskip
+\bigskip
 
-We start with a few of the simplest building blocks for complex multivariate statistical models: the beta/binomial, normal, and inverse-gamma conjugate families.
-
-\begin{enumerate}[(A)]
-
-\item Suppose that we take independent observations $x_1, \ldots, x_N$ from a Bernoulli sampling model with unknown probability $w$.  That is, the $x_i$ are the results of flipping a coin with unknown bias.  Suppose that $w$ is given a Beta(a,b) prior distribution:
-$$
-p(w) = \frac{\Gamma(a+b)}{\Gamma(a) \cdot \Gamma(b)} \ w^{a-1} (1-w)^{b-1} \, ,
-$$
-where $\Gamma(\cdot)$ denotes the Gamma function.  Derive the posterior distribution $p(w \mid x_1, \ldots, x_N)$.\footnote{I offer two tips here that are quite general.  (1) Your final expression will be cleaner if you reduce the data to a sufficient statistic.  (2) Start off by ignoring normalization constants (that is, factors in the density function that do not depend upon the unknown parameter, and are only there to make the density integrate to 1.)  At the end, re-instate these normalization constants based on the functional form of the density.}
-
-\item The probability density function (PDF) of a gamma random variable, $x \sim \mbox{Ga}(a,b)$, is
-$$
-p(x) = \frac{b^a}{\Gamma(a)} x^{a-1} \exp(-bx) \, .
-$$
-Suppose that $x_1 \sim \mbox{Ga}(a_1,1)$ and that $x_2 \sim \mbox{Ga}(a_2,1)$.  Define two new random variables $y_1 = x_1/(x_1 + x_2)$ and $y_2 = x_1 + x_2$.  Find the joint density for $(y_1, y_2)$ using a direct PDF transformation (and its Jacobian).\footnote{Take care that you apply the important change-of-variable formula from basic probability.  See, e.g., Section 1.2 of \url{http://www.stat.umn.edu/geyer/old/5102/n.pdf}.}  Use this to characterize the  marginals $p(y_1)$ and $p(y_2)$, and propose a method that exploits this result to simulate beta random variables, assuming you have a source of gamma random variables.
-
-\item Suppose that we take independent observations $x_1, \ldots, x_N$ from a normal sampling model with unknown mean $\theta$ and \textit{known} variance $\sigma^2$: $x_i \sim \mbox{N}(\theta, \sigma^2)$.  Suppose that $\theta$ is given a normal prior distribution with mean $m$ and variance $v$.  Derive the posterior distribution $p(\theta \mid x_1, \ldots, x_N)$.
-
-\item Suppose that we take independent observations $x_1, \ldots, x_N$ from a normal sampling model with \textit{known} mean $\theta$ but \textit{unknown} variance $\sigma^2$.  (This seems even more artificial than the last, but is conceptually important.)  To make this easier, we will re-express things in terms of the precision, or inverse variance $\omega = 1/\sigma^2$:
-$$
-p(x_i \mid \theta, \omega) = \left( \frac{\omega}{2 \pi} \right)^{1/2} \exp \left\{ -\frac{\omega}{2} (x_i - \theta)^2 \right\} \, .
-$$
-Suppose that $\omega$ has a gamma prior with parameters $a$ and $b$, implying that $\sigma^2$ has what is called an inverse-gamma prior.\footnote{Written $\sigma^2 \sim \mbox{IG}(a,b)$.}  Derive the posterior distribution $p(\omega \mid x_1, \ldots, x_N)$.  Re-express this as a posterior for $\sigma^2$, the variance.
-
-\item Suppose that, as above, we take independent observations $x_1, \ldots, x_N$ from a normal sampling model with unknown, common mean $\theta$.  This time, however, each observation has its own idiosyncratic (but known) variance: $x_i \sim \mbox{N}(\theta, \sigma_i^2)$.  Suppose that $\theta$ is given a normal prior distribution with mean $m$ and variance $v$.  Derive the posterior distribution $p(\theta \mid x_1, \ldots, x_N)$.  Express the posterior mean in a form that is clearly interpretable as a weighted average of the observations and the prior mean.
-
-\item Suppose that $(x \mid \omega) \sim \N(m, \omega^{-1})$, and that $\omega$ has a Gamma$(a/2, b/2)$ prior, with PDF defined as above.  Show that the marginal distribution of $x$ is Student's $t$ with $d$ degrees of freedom, center $m$, and scale parameter $(b/a)^{1/2}$.  This is why the $t$ distribution is often referred to as a \textit{scale mixture of normals}.
-
-\end{enumerate}
+{\bf \large Bayesian inference in simple conjugate families} 
+\bigskip
 
 
 
-\section{The multivariate normal distribution}
+{\bf Part A} \\
+\bigskip
 
-\subsection{Basics}
+We know:\\
+$$P(w) = \frac{\Gamma(a+b)}{\Gamma(a).\Gamma(b)}w^{1-1}(1-w)^{b-1}$$ \\
 
-We all know the univariate normal distribution, whose long history began with de Moivre's 18th-century work on approximating the (analytically inconvenient) binomial distribution.  This led to the probability density function
-$$
-p(x) = \frac{1}{\sqrt{2 \pi v}} \exp \left\{ - \frac{(x-m)^2}{2 v} \right\} \, 
-$$
-for the normal random variable with mean $m$ and variance $v$, written $x \sim \N(m, v)$.
+Let $y$ be the number of successes for $n$ trials; then: \\
 
-Here's an alternative characterization of the univariate normal distribution in terms of moment-generating functions:\footnote{Laplace transforms to everybody but statisticians.} a random variable $x$ has a normal distribution if and only if $E \left\{ \exp(tx) \right\} = \exp(mt + v t^2 /2)$ for some real $m$ and positive real $v$.  Remember that $E(\cdot)$ denotes the expected value of its argument under the given probability distribution.  We will generalize this definition to the multivariate normal.
+$$ P(y|w) = {n \choose y}w^{y}(1-w)^{n-y} $$
 
-\begin{enumerate}[(A)]
 
-\item First, some simple moment identities.  The covariance matrix $\mbox{cov}(x)$ of a vector-valued random variable $x$ is defined as the matrix whose $(i,j)$ entry is the covariance between $x_i$ and $x_j$.  In matrix notation, $\mbox{cov}(x) = E\{ (x - \mu) (x - \mu)^T \}$, where $\mu$ is the mean vector whose $i$th component is $E(x_i)$.  Prove the following: (1) $\mbox{cov}(x) = E(xx^T) - \mu \mu^T$; and (2) $\mbox{cov}(Ax + b) = A \mbox{cov}(x) A^T$ for matrix $A$ and vector $b$.
+Then,
 
-\item Consider the random vector $z = (z_1, \ldots, z_p)^T$, with each entry having an independent standard normal distribution (that is, mean 0 and variance 1).  Derive the probability density function (PDF) and moment-generating function (MGF) of $z$, expressed in vector notation.\footnote{Remember that the MGF of a vector-valued random variable $x$ is the expected value of the quantity $\exp(t^T x)$, as a function of the vector argument $t$.}   We say that $z$ has a standard multivariate normal distribution.
+$$ P(w|y) \propto P(y|w)P(w) $$ \\
 
-\item A vector-valued random variable $x = (x_1, \ldots, x_p)^T$ has a \textit{multivariate normal distribution} if and only if every linear combination of its components is univariate normal.  That is, for all vectors $a$ not identically zero, the scalar quantity $z = a^T x$ is normally distributed.  From this definition, prove that $x$ is multivariate normal, written $x \sim \N(\mu, \Sigma)$, if and only if its moment-generating function is of the form $E(\exp \{t^T x\}) = \exp(t^T \mu + t^T \Sigma t / 2)$.  Hint: what are the mean, variance, and moment-generating function of $z$, expressed in terms of moments of $x$?
+$$ P(w|y) \propto {n \choose y}w^{y}(1-w)^{n-y}
+\frac{\Gamma(a+b)}{\Gamma(a).\Gamma(b)}w^{a-1}(1-w)^{b-1}$$ \\
 
-\item Another basic theorem is that a random vector is multivariate normal if and only if it is an affine transformation of independent univariate normals.  You will first prove the ``if'' statement.  Let $z$ have a standard multivariate normal distribution, and define the random vector $x = L z + \mu$ for some $p \times p$ matrix $L$ of full column rank.\footnote{The full rank restriction turns out to be unnecessary; relaxing it leads to what is called the \textit{singular normal distribution.}}   Prove that $x$ is multivariate normal.  In addition, use the moment identities you proved above to compute the expected value and covariance matrix of $x$.  
 
-\item Now for the ``only if.''  Suppose that $x$ has a multivariate normal distribution.  Prove that $x$ can be written as an affine transformation of standard normal random variables.  (Note: a good way to prove that something can be done is to do it!  Think about a matrix $A$ such that $A A^T = \Sigma$.)  Use this insight to propose an algorithm for simulating multivariate normal random variables with a specified mean and covariance matrix.
+$$ P(w|y) \propto {n \choose y} \frac{\Gamma(a+b)}{\Gamma(a).\Gamma(b)}w^{y+a-b}(1-w)^{n-y+b-1} 
+$$ \\
+ 
+$ w^{y+a-b}(1-w)^{n-y+b-1}  $is the beta distribution $Beta(a+y, b+n-y)$. The integral of its PDF is 1. Since the integral of the PDF of $P(w|y)$ must also be 1,  \\
 
-\item Use this last result, together with the PDF of a standard multivariate normal, to show that the PDF of a multivariate normal $x \sim \N(\mu, \Sigma)$ takes the form $p(x) = C \exp\{-Q(x-\mu)/2\}$ for some constant $C$ and quadratic form $Q(x-\mu)$.\footnote{A useful fact is that the Jacobian matrix of the linear map $x \rightarrow Ax$ is simply $A$.}
+$$ P(w|y) = Beta(a+y, b+n-y)$$\\
 
-%\item Let $x$ be as above and suppose that $y = A x$, where $A$ is an $n \times p$ matrix of full column rank (i.e.~its columns are linearly independent).  Compute the MGF of $y$.  If $n < p$, what the PDF of $y$?  If $n>p$, why can we not write down the PDF of $y$?\footnote{This doesn't make it an invalid distribution!  It is perfectly valid, and is usually referred to as the singular normal distribution---singular in the sense of a square matrix that lacks an inverse.}
 
-\item Let $x_1 \sim N(\mu_1, \Sigma_1)$ and $x_2 \sim N(\mu_2, \Sigma_2)$, where $x_1$ and $x_2$ are independent of each other.  Let $y = A x_1 + B x_2$ for matrices $A,B$ of full column rank and appropriate dimension.  Note that $x_1$ and $x_2$ need not have the same dimension, as long as $A x_1$ and $B x_2$ do.  Use your previous results to characterize the distribution of $y$.
+{\bf Part B} \\
+\bigskip
 
-\end{enumerate}
+We have $x_1 \sim Ga(a_1, 1)$ and  $x_2 \sim Ga(a_2, 1)$ . We define $y_1 = x_1/(x_1 + x_2)$ and $y_2 = x_1 + x_2$. We can write:
 
-\subsection{Conditionals and marginals}
+$$x_1 = y_1y_2  $$
 
-Suppose that $x \sim \N(\mu, \Sigma)$ has a multivariate normal distribution.  Let $x_1$ and $x_2$ denote an arbitrary partition of $x$ into two sets of components.  Because we can relabel the components of $x$ without changing their distribution, we can safely assume that $x_1$ comprises the first $k$ elements of $x$, and $x_2$ the last $p-k$.  We will also assume that $\mu$ and $\Sigma$ have been partitioned conformably with $x$:
-$$
-\mu = (\mu_1, \mu_2)^T \quad \mbox{and} \quad \Sigma =
-\left(
-\begin{array}{cc}
+and
+
+$$x_2 = y_2 - y_1y_2  $$
+
+Find the Jacobian\\
+
+$$|J|= \det\begin{pmatrix} \frac{\partial x_1}{\partial y_1} & \frac{\partial x_1}{\partial y_2} \\ \frac{\partial x_2}{\partial y_1} & \frac{\partial x_2}{\partial y_2} \end{pmatrix} =det\begin{pmatrix}
+  y_2 & y_1\\ 
+  -y_2 & 1-y_1 
+\end{pmatrix} = y_2(1-y_1) + y_1y_2 = y_2
+ $$\\
+ 
+ The joint PDF for $x_1$ and $x_2$ is \\
+ 
+ $$\frac{1}{\Gamma(a_1)\Gamma(a_2)} x_1^{a_1-1} x_2^{a_2-1} \exp(-x_1-x_2)    $$\\
+ 
+  The joint PDF for $y_1$ and $y_2$ is \\
+  
+  $$f_{y_1, y_2} = f_{x_1, x_2}(y_1, y_2) |J| $$\\
+  
+  $$  = \frac{1}{\Gamma(a_1)\Gamma(a_2)} (y_1 y_2)^{a_1-1} (y_2-y_1 y_2)^{a_2-1} \exp[-(y_1 y_2)-(y_2-y_1 y_2)]y_2 $$\\
+  
+  $$=   \frac{1}{\Gamma(a_1)\Gamma(a_2)} y_1^{a_1-1}(1-y_1)^{a_2-1}y_2^{a_2}\exp(-y_2)2 $$\\
+
+
+$$ =   \left[\frac{\Gamma(a_1 + a_2)}{\Gamma(a_1)\Gamma(a_2)}y_1^{a_1-1}(1-y_1)^{a_2-1} \right] \left[ \frac{1}{\Gamma(a_1 + a_2)}y_2^{a_1+a_2-1}\exp(-y_2)  \right] $$
+
+
+so 
+
+$$ y_1 \sim Beta(a_1, a_2)$$
+$$ y_2 \sim Gamma(a_1+a_2, 1)$$\\
+
+We can use two gamma random variables and apply the transformation to obtain a beta variable.\\ 
+
+{\bf Part C} \\
+\bigskip
+
+We know:
+
+$$P(x_1, ...,x_n|\theta, \sigma^2) = \left(\frac{1}{\sigma \sqrt{2\pi }}\right)^n \prod_{i=1}^{n} \exp\left[-\frac{1}{2}\left(\frac{x_i-\theta}{\sigma}\right)^2\right]$$\\
+
+Since the observations are independent. We can re-write:
+
+$$ \prod_{i=1}^{n} \exp\left[-\frac{1}{2}\left(\frac{x_i-\theta}{\sigma}\right)^2\right] =  \exp\left[-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(x_i-\theta)^2\right]     $$\\
+
+and 
+
+$$\sum_{i=1}^{n}(x_i-\theta)^2 =  \sum_{i=1}^{n} (x_i^2 - 2x_i\theta + \theta^2 ) = n\bar{x^2} - 2n\bar{x}\theta +n\theta^2 $$
+
+so
+
+
+
+$$P(x_1, ...,x_n|\theta, \sigma^2) = \left(\frac{1}{\sigma \sqrt{2\pi }}\right)^n \exp\left(-\frac{1}{2\sigma^2}n\bar{x^2} - 2n\bar{x}\theta +n\theta^2\right)$$\\
+
+
+Then, \\
+$$ P(\theta) = \frac{1}{v \sqrt{2\pi }}  \exp\left[-\frac{1}{2}\left(\frac{\theta-m}{v}\right)^2\right]$$\\
+
+Then,
+
+$$P(\theta|x_1, ...,x_n) \propto P(x_1, ...,x_n|\theta, \sigma^2) P(\theta)$$\\
+
+$$P(\theta|x_1, ...,x_n) \propto \left(\frac{1}{\sigma \sqrt{2\pi }}\right)^n \exp\left(-\frac{1}{2\sigma^2}n\bar{x^2} - 2n\bar{x}\theta +n\theta^2\right)\frac{1}{v \sqrt{2\pi }}  \exp\left[-\frac{1}{2}\left(\frac{x-m}{v}\right)^2\right]$$\\
+
+
+We can drop the terms outside the exponentials and re-arrange:
+
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\left(\frac{n\bar{x^2}+2n\bar{x}\theta+n\theta^2}{\sigma^2} + \frac{\theta^2-2m\theta+m^2}{v}\right)\right] $$\\
+
+We can drop the terms not involving $\theta$:
+
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\left(\frac{2n\bar{x}\theta+n\theta^2}{\sigma^2} + \frac{\theta^2-2m\theta}{v}\right)\right] $$\\
+
+Re-arranging:
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\left(\frac{2n\bar{x}\theta v+n\theta^2v+\theta^2\sigma^2-2m\theta\sigma^2}{\sigma^2v} \right)\right] $$\\
+
+Completing the squares:
+
+
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\left(\frac{\theta^2 - 2\theta\frac{n\bar{x}v+m\sigma^2}{nv+\sigma^2}}{\frac{\sigma^2v}{nv+\sigma^2}} \right)\right] $$\\
+
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\frac{\left(\theta - \frac{n\bar{x}v+m\sigma^2}{nv+\sigma^2}\right)^2 - \left(\frac{n\bar{x}v+m\sigma^2}{nv+\sigma^2}\right)^2 }{\frac{\sigma^2v}{nv+\sigma^2}} \right] $$\\
+
+Drop terms,
+
+$$P(\theta|x_1, ...,x_n) \propto  \exp\left[-\frac{1}{2}\frac{\left(\theta - \frac{n\bar{x}v+m\sigma^2}{nv+\sigma^2}\right)^2 }{\frac{\sigma^2v}{nv+\sigma^2}} \right] $$\\
+
+This has the form of a normal distribution, therefore:
+$$P(\theta|x_1, ...,x_n) \sim N  \left(\frac{n\bar{x}v+m\sigma^2}{nv+\sigma^2},  \frac{\sigma^2v}{nv+\sigma^2}  \right)$$\\
+
+{\bf Part D} \\
+\bigskip
+
+We know
+
+$$P(w) \sim Ga(a,b)$$\\
+
+and 
+
+$$P(x_1, ..., x_n|w) =  \left(\frac{w}{2\pi}\right)^{\frac{n}{2}}\prod_{i=1}^{n}\exp \left[ -\frac{w}{2}(x_i-\theta)^2 \right] $$\\
+
+or 
+
+$$P(x_1, ..., x_n|w) =  \left(\frac{w}{2\pi}\right)^{\frac{n}{2}}\exp \left[ -\frac{w}{2} \sum_{i=1}^{n}(x_i-\theta)^2 \right] $$\\
+
+Then,
+$$P(w|x_1, ..., x_n) \propto  \left(\frac{w}{2\pi}\right)^{\frac{n}{2}}\exp \left[ -\frac{w}{2} \sum_{i=1}^{n}(x_i-\theta)^2 \right] \frac{b^a}{\Gamma(a)}w^{a-1}\exp(-bw) $$\\
+
+or,
+
+$$P(w|x_1, ..., x_n) \propto  w^{a-1+\frac{n}{2}}\exp \left[ -w \left( \sum_{i=1}^{n}\frac{(x_i-\theta)^2}{2} +b \right)\right]  $$\\
+
+or
+
+
+$$P(w|x_1, ..., x_n) \sim Ga\left(a+\frac{n}{2}, \sum_{i=1}^{n}\frac{(x_i-\theta)^2}{2} +b  \right)$$
+
+$\sigma^2$ will be an IG distribution with the same parameters.\\
+
+
+{\bf Part E} \\
+\bigskip
+
+We know
+
+$$ x_i \sim N(\theta, {\sigma_i}^2)$$
+
+
+and 
+
+$$ P(\theta) \sim N(m,v)$$
+
+so
+
+$$ P(x_1, ..., x_n | \theta, \sigma_1^2, ..., \sigma_n^2) = \prod_{i=1}^{n} \frac{1}{\sigma_i \sqrt{2\pi}}\exp\left[-\frac{1}{2}\left(\frac{x_i-\theta}{\sigma_i}\right)^2\right] $$\\
+or
+$$ P(x_1, ..., x_n | \theta, \sigma_1^2, ..., \sigma_n^2) \propto  \exp\left[-\frac{1}{2}\sum_{i=1}^{n}\left(\frac{x_i-\theta}{\sigma_i}\right)^2\right] $$\\
+
+Then,\\
+
+$$P( \theta|x_1, ..., x_n ) \propto P( x_1, ..., x_n|\theta)P(\theta)$$
+ or\\
+ 
+ $$P( \theta|x_1, ..., x_n ) \propto \exp\left[-\frac{1}{2} \left(\sum_{i=1}^{n}\left(\frac{x_i-\theta}{\sigma_i}\right)^2 + \frac{(\theta-m)^2}{v}\right)\right] $$\\
+ 
+ or \\
+ 
+  $$P( \theta|x_1, ..., x_n ) \propto \exp\left[-\frac{1}{2} \left(\sum_{i=1}^{n}\frac{x_i^2 - 2x_i\theta+\theta^2}{\sigma_i^2} + \frac{\theta^2-2m\theta + m^2}{v}\right)\right] $$\\
+  
+  Dropping terms and re-arranging\\
+  
+    $$P( \theta|x_1, ..., x_n ) \propto \exp\left[-\frac{1}{2} \left( -2\sum_{i=1}^{n}\frac{x_i^2}{\sigma_i^2} + \theta^2\sum_{i=1}^{n}\frac{1}{\sigma_i^2} +\frac{\theta^2}{v} -\frac{2m\theta}{v}\right) \right] $$\\
+    
+    
+    or\\
+    
+        $$P( \theta|x_1, ..., x_n ) \propto \exp\left[-\frac{1}{2}\left( \sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v} \right) \left(
+        \theta^2 -2\theta \frac{\frac{x_i^2}{\sigma_i^2}+\frac{m}{v} }{\sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v}}   \right)\right]$$
+        
+        
+or 
+
+  $$P( \theta|x_1, ..., x_n ) \propto \exp\left[-\frac{1}{2}\left( \sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v} \right) \left(
+        \theta - \frac{\frac{x_i^2}{\sigma_i^2}+\frac{m}{v} }{\sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v}}   \right)^2\right]$$
+        
+so we have
+
+
+$$P( \theta|x_1, ..., x_n ) \sim   N \left(\frac{\frac{x_i^2}{\sigma_i^2}+\frac{m}{v} }{\sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v}}, \left( \sum_{i=1}^{n}\frac{1}{\sigma_i^2} + \frac{1}{v} \right)^{-1}  \right)$$\\
+
+{\bf Part F} \\
+\bigskip
+    
+    
+We know
+
+$$ (x|\omega) \sim N(m, \omega^{-1})$$\\
+
+Where $$\omega = \frac{1}{\sigma^2}$$\\
+
+And
+
+$$\omega \sim Ga\left(  \frac{a}{2} , \frac{b}{2}         \right)$$\\
+
+$$P(x) = \int_{0}^{\infty}P(x|\omega)P(\omega)d\omega$$\\
+
+$$P(x) =\int_{0}^{\infty} \left(\frac{\omega}{2\pi}\right)^\frac{1}{2}\exp \left[ -\frac{1}{2}\left((x-m)^2\omega\right)\right] \frac{\frac{b}{2}^\frac{a}{2}}{\Gamma{\frac{a}{2}}}\omega^{\frac{a}{2}-1}  \exp\left (-\frac{b}{2}\omega \right)  d\omega $$\\
+
+Drop terms\\
+
+$$P(x) \propto\int_{0}^{\infty} \exp \left[ -\frac{1}{2}\left((x-m)^2\omega\right)\right] \omega^{\frac{a}{2}-\frac{1}{2}}  \exp\left (-\frac{b}{2}\omega \right)  d\omega $$\\
+
+Re-arrange\\
+
+$$P(x) \propto\int_{0}^{\infty} \exp \left[ -\omega\left(\frac{(x-m)^2+b}{2}\right)\right] \omega^{\frac{a}{2}-1}    d\omega $$\\
+
+
+This looks like a gamma function:\\
+
+$$ \frac{\Gamma(z)}{\beta^z} = \int_{0}^{\infty}x^{z-1}e^{-\beta x}dx$$\\
+
+where $$ z \equiv \frac{1}{2}(a+1)$$\\
+
+and \\
+
+$$\beta \equiv \frac{(x-m)^2+b}{2}$$\\
+
+so 
+
+$$P(x) \propto \Gamma\left[\frac{1}{2}(a+1)\right] \left[\frac{(x-m)^2+b}{2}\right]^{-\frac{1}{2}(a+1)}$$\\
+
+Drop constants 
+
+$$P(x) \propto \left[(x-m)^2+b\right]^{-\frac{1}{2}(a+1)}$$\\
+
+or 
+$$P(x) \propto \left[\frac{(x-m)^2}{b}+1\right]^{-\frac{1}{2}(a+1)}$$\\
+
+
+or
+
+$$P(x) \propto \left[\frac{1}{a}\frac{(x-m)^2}{\frac{b}{a}}+1\right]^{-\frac{1}{2}(a+1)}$$\\
+
+This is a t distribution with $loc=m$,  $scale=\sqrt{b/a
+}$, and $df=a$.
+
+\newpage
+{\large \bf The multivariate normal distribution}
+\bigskip
+\bigskip
+
+{\bf Part A}\\
+\bigskip
+
+Prove that 
+$$cov(x)=E(xx^T)-\mu\mu^T$$\\
+
+Start with \\
+
+$$cov(x)=E\{(x-\mu)(x-\mu)^T\}$$\\
+
+
+$$cov(x)=E\{(x-\mu)(x^T-\mu^T)\}$$\\
+
+$$cov(x)=E\{xx^T-x\mu^T-\mu x^T+\mu\mu^T\}$$\\
+
+$$cov(x)=E\{xx^T\} -E\{x\}\mu^T -\mu E\{x^T\}+\mu\mu^T\}$$\\
+
+
+
+$$cov(x)=E\{xx^T\}-2\mu \mu^T+\mu\mu^T $$\\
+
+$$cov(x)=E\{xx^T\}-\mu\mu^T$$\\
+
+
+Prove that\\
+
+$$cov(Ax+b) = Acov(x)A^T $$
+
+Start with
+
+$$cov(Ax+b) = E\{[Ax+b-E(Ax+b)][Ax+b-E(Ax+b)]^T\}$$\\
+
+
+$$cov(Ax+b) = E\{[Ax+b-AE(x)-b][Ax+b-AE(x)-b]^T\}$$\\
+
+$$cov(Ax+b) = E\{[Ax-AE(x)][Ax-AE(x)]^T\}$$\\
+
+$$cov(Ax+b) = E\{A[x-E(x)] [x^TA^T-E(x)^TA^T]\}$$\\
+
+$$cov(Ax+b) = E\{A[x-E(x)] [x^T-E(x)^T]A^T\}$$\\
+
+$$cov(Ax+b) = AE\{[x-\mu] [x^T-\mu^T]\}A^T$$\\
+
+$$cov(Ax+b) = Acov(x)A^T$$\\
+
+{\bf Part B}\\
+\bigskip
+
+Derive the PDF of $z = (z_1, ..., z_p)$
+
+$$p(z) = \prod_{i=1}^{p}\frac{1}{\sqrt{2\pi}}\exp\left(-\frac{1}{2}z_i^2\right) $$\\
+
+$$=\left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} \exp\left(-\frac{1}{2}\sum_{i=1}^{p} z_i^2\right) $$\\
+
+$$ =\left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} \exp\left(-\frac{1}{2} z^Tz\right) $$
+
+
+
+
+Derive the MGF of $z$
+
+$$M_{zi}(t_i) = E[\exp(tz)] =\int_{-\infty}^{\infty} \exp(tz) \frac{1}{\sqrt{2\pi}} \exp\left(-\frac{1}{2}z^2\right)dz $$\\
+
+
+$$=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{\infty} \exp\left(-\frac{1}{2}z^2 +t_iz\right)dz $$\\
+
+$$=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{\infty} \exp\left[-\frac{1}{2}(z^2 -2t_i)\right]dz $$\\
+
+$$=\frac{1}{\sqrt{2\pi}}\exp\left(\frac{1}{2}t^2\right)\int_{-\infty}^{\infty} \exp\left[-\frac{1}{2}(z-t_i)^2\right]dz $$\\
+
+$$=\exp\left(\frac{1}{2}t_i^2\right)$$
+
+
+Then,\\
+
+$$M_{z}(t) = \prod_{i=1}^{p} M_{zi}(t_i) =\prod_{i=1}^{p} \exp\left(\frac{1}{2}t_i^2\right) =\exp\left(\frac{1}{2}\sum_{i=1}^{n}t_i^2\right) =  \exp\left(\frac{1}{2}t^Tt\right)$$\\
+
+
+{\bf Part C}\\
+\bigskip
+
+For a univariate normal distribution:
+
+
+$$ M_z = E\left\{\exp\left(  mt + \frac{1}{2}vt^2   \right) \right\} $$
+
+Then,
+
+$$ m = E(z) = E(a^Tx) = a^T\mu $$
+
+$$ v= var(z) = var(a^Tx) = a^Tvar(x)a = a^T \Sigma a $$\\
+
+Plug $m$ and $v$ into the $M_z$ equation
+
+
+$$ M_z =E\{\exp(ta^Tx )\} =\exp\left(  a^T\mu t + \frac{1}{2}a^T \Sigma a t^2   \right)  $$
+
+Let $t=1$
+
+$$ M_z =E\{\exp(a^Tx )\}  = \exp\left(  a^T\mu  + \frac{1}{2}a^T \Sigma a \right)  $$\\
+
+If we replace $a$ with $t$, this has the same form as in the question:\\
+
+$$ M_z =\exp(t^Tx )\}  = \exp\left(  t^T\mu  + \frac{1}{2}t^T \Sigma t \right)  $$
+
+
+{\bf Part D}\\
+\bigskip
+
+Let $x=Lz+\mu$\\
+
+The MGF for $z$ is\\
+
+$$ M_x = E\{\exp(t^Tz )\} $$\\
+
+$$= E\{\exp(t^T(Lz+\mu) )\} $$\\
+
+
+$$= E\{\exp(t^TLz \exp\{ t^T\mu )\} $$\\
+
+$$= \exp\{ t^T\mu ) E\{\exp(t^TLz\} $$\\
+
+
+$$= \exp( t^T\mu ) E\{\exp[(L^Tt)^Tz]\} $$\\
+
+
+$$= \exp\left\{ t^T\mu +\frac{(L^Tt)^T(L^Tt)}{2}\right\} $$\\
+
+$$= \exp\left\{ t^T\mu +\frac{t^TLL^Tt}{2}\right\} $$\\
+
+
+
+This has the form of a multivariate normal MGF with mean $\mu$ and variance $LL^T$.\\
+
+
+{\bf Part E}\\
+\bigskip
+
+We know the MFG for $z$, and $x=Lz+\mu$
+
+$$M_z(t) = E\{\exp(t^Tz)\}= E\{\exp[t^TL^{-1}(x-\mu)]\}$$\\
+
+$$ = E\{\exp(t^Tz)\}= \exp(-t^TL^{-1}\mu)E\{\exp[t^TL^{-1}x]\}$$\\
+
+$$ = E\{\exp(t^Tz)\}= \exp(-t^TL^{-1}\mu)E\{\exp[(L^{-T}t)^Tx]\}$$\\
+
+$$ = E\{\exp(t^Tz)\}= \exp(-t^TL^{-1}\mu)\exp\left[ \left(L^{-T}t\right)^T\mu  + \frac{1}{2}\left(L^{-T}t\right)^T \Sigma \left(L^{-T}t\right) \right]$$\\
+
+
+We can write $\Sigma$ as $LL^T$ because it is symmetric and square.
+
+$$ = E\{\exp(t^Tz)\}= \exp\left(-t^TL^{-1}\mu\right)\exp\left[  (L^{-T}t)^T\mu  + \frac{1}{2}\left(L^{-T}t\right)^T LL^T\left(L^{-T}t\right) \right]$$\\
+
+$$= E\{\exp(t^Tz)\}= \exp\left(-t^TL^{-1}\mu\right)\exp\left[  (L^{-T}t)^T\mu  + \frac{1}{2}\left(t^TL^{-1} LL^TL^{-T}t\right) \right]$$\\
+
+
+$$ = E\{\exp(t^Tz)\}= \exp\left(-t^TL^{-1}\mu\right)\exp\left[  (L^{-T}t)^T\mu  + \frac{1}{2}\left(t^Tt\right) \right]$$\\
+
+$$ =\exp\left(\frac{t^Tt}{2}\right)$$\\
+
+Which is the MGF for a standard multivariate normal distribution.\\
+
+{\bf Algorithm to simulate a multivariate normal distribution with known covariance matrix and means:}
+
+\begin{itemize}
+    \item Make n standard univariate distributions
+    \item Generate vector of length n containing means
+    \item Generate convariance matrix of size $n \times n$
+    \item Get desired distribution using $x = Lz + \mu$
+\end{itemize}
+\bigskip
+\bigskip
+{\bf Part F}\\
+\bigskip
+
+The PDF of a standard multivariate normal is:
+
+
+
+$$ f(z)=\left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} \exp\left(-\frac{1}{2} z^Tz\right) $$
+
+Then,
+
+$$ x=g(z) = Lz+\mu$$
+
+or
+
+$$ z= g^{-1}(x) = L^{-1}(x - \mu)$$
+
+and
+
+$$f_x = f_z(g^{-1}(x)).|J| $$
+
+Where \\
+$$|J| = det(L^{-1}) = \frac{1}{det(L)} = \frac{1}{det(\Sigma L^{-T}) } = \frac{det(L)}{det(\Sigma)}=\frac{1}{det(\Sigma)|J|}$$\\
+
+so 
+
+$$|J| = det(\Sigma)^{-\frac{1}{2}} = det(\Sigma^{-\frac{1}{2}})  $$
+
+ $$f_x = \left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} det(\Sigma^{-\frac{1}{2}}) \exp\left(-\frac{1}{2} [L^{-1}(x - \mu)]^TL^{-1}(x - \mu)\right) $$
+
+ $$= \left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} det(\Sigma^{-\frac{1}{2}}) \exp\left(-\frac{1}{2} (x - \mu)^TL^{-T}L^{-1}(x - \mu)\right) $$
+
+ $$= \left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} det(\Sigma^{-\frac{1}{2}}) \exp\left(-\frac{1}{2} (x - \mu)^T(L^TL)^{-1}(x - \mu)\right) $$
+ 
+  $$= \left(\frac{1}{\sqrt{2\pi}} \right)^{p/2} det(\Sigma^{-\frac{1}{2}}) \exp\left(-\frac{1}{2} (x - \mu)^T\Sigma^{-1}(x -\mu)\right) $$
+
+
+{\bf Part G}\\
+\bigskip
+
+We have $ x_1\sim N(\mu_1, \Sigma_1) $ and $ x_2\sim N(\mu_2, \Sigma_2) $ with $y=Ax_1 + Bx_2$\\
+
+Calculate the MGF of $y$:
+
+$$MGF_y(t) = E\{\exp(t^Ty)    \}     $$\\
+
+$$= E\{\exp(t^T(Ax_1 + Bx_2))    \}     $$\\
+
+
+$$= E\{\exp(t^TAx_1) +  \exp(t^T Bx_2))    \}     $$\\
+
+
+$$= E\{\exp(t^TAx_1) +  \exp(t^T Bx_2))    \}     $$\\
+
+
+$$= E\{\exp( [A^Tt]^T x_1   ) +  \exp([B^Tt]^T x_2 )    \}     $$\\
+
+$$ = \exp\left(  [A^Tt]^T\mu_1  + \frac{1}{2}[A^Tt]^T \Sigma_1 [A^Tt]  +  [B^Tt]^T\mu_2  + \frac{1}{2}[B^Tt]^T \Sigma_2 [B^Tt]\right)  $$
+
+
+$$ = \exp\left(  t^TA \mu_1  + \frac{1}{2}t^TA \Sigma_1 [A^Tt]  +  t^TB\mu_2  + \frac{1}{2}t^TB \Sigma_2 [B^Tt]\right)  $$\\
+
+
+$$ = \exp\left( t^T[A\mu_1 + B\mu_2] + \frac{1}{2}t^T[A\Sigma_1A^T+B\Sigma_2 B^T]t          \right)  $$\\
+
+
+This has the form of a multivariate normal mgf, so its PDF is as shown in Part F with     $\mu \equiv A\mu_1+B\mu_2$ and $\Sigma \equiv A\Sigma_1A^T+B\Sigma_2 B^T$\\
+\bigskip
+
+{\bf \large Conditionals and Marginals} 
+\bigskip
+
+\bigskip
+
+{\bf Part A}\\
+\bigskip
+
+
+
+From the previous question, for $y = Ax_1 + Bx_2$
+
+ $$ MGF_y= \exp\left( t^T[A\mu_1 + B\mu_2] + \frac{1}{2}t^T[A\Sigma_1A^T+B\Sigma_2 B^T]t          \right)  $$\\
+
+Here let $x_1 = Ax$, where $A = [I_{k \times k} | 0_{k\times(p-k)}]$, so $x_1$ has is multivariate normal with mean  $ A \mu$ and covariance $A\Sigma A^T$
+
+We have:
+
+$$ E(x_1) = A\mu = \begin{bmatrix}
+I & 0 
+\end{bmatrix}   \begin{bmatrix}
+\mu_1 \\
+\mu_2 
+\end{bmatrix}  = \mu_1$$
+
+and
+
+$$ cov(x_1) = A\Sigma A^T = \begin{bmatrix}
+I & 0 
+\end{bmatrix} \begin{bmatrix}
 \Sigma_{11} & \Sigma_{12} \\
 \Sigma_{21} & \Sigma_{22} 
-\end{array}
-\right) \, .
-$$
-Clearly $\Sigma_{21} = \Sigma_{12}^T$, as $\Sigma$ is a symmetric matrix.
+\end{bmatrix}   \begin{bmatrix}
+I \\
+0
+\end{bmatrix} = \begin{bmatrix}
+I & 0 
+\end{bmatrix}  \begin{bmatrix}
+\Sigma_{11} \\
+\Sigma_{21} 
+\end{bmatrix} = \Sigma_{11}
+$$\\
+
+The marginal distribution of $x_1$ is a multivariate normal with these parameters.\\
 
 
-\begin{enumerate}[(A)]
+{\bf Part B}\\
+\bigskip
 
-\item Derive the marginal distribution of $x_1$. (Remember your result about affine transformations.)
-
-\item Let $\Omega = \Sigma^{-1}$ be the inverse covariance matrix, or precision matrix, of $x$, and partition $\Omega$ just as you did $\Sigma$:
-$$
-\Omega =
-\left(
-\begin{array}{cc}
-\Omega_{11} & \Omega_{12} \\
-\Omega_{12}^T & \Omega_{22} 
-\end{array}
-\right) \, .
-$$
-Using (or deriving!) identities for the inverse of a partitioned matrix, express each block of $\Omega$ in terms of blocks of $\Sigma$.
-
-\item Derive the conditional distribution for $x_1$, given $x_2$, in terms of the partitioned elements of $x$, $\mu$, and $\Sigma$.  There are several keys to inner peace: work with densities on a log scale, ignore constants that don't affect $x_1$, and remember the cute trick of completing the square from basic algebra.\footnote{In scalar form:
-\begin{eqnarray*}
-x^2 - 2bx + c &=& x^2 - 2bx + b^2 - b^2 + c \\
-&=& (x-b)^2 - b^2 + c \, .
-\end{eqnarray*}
-}
-Explain briefly how one may interpret this conditional distribution as a linear regression on $x_2$, where the regression matrix can be read off the precision matrix.
-
-\end{enumerate}
+Using identity:
 
 
-\section{Multiple regression: three classical principles for inference}
+$$ \Omega_{11} = (\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21})^{-1} $$
 
-Suppose we observe data that we believe to follow a linear model, where $y_i = x_i^T \beta + \epsilon_i$ for $i = 1, \ldots, n$.
-To fix notation: $y_i$ is a scalar response; $x_i$ is a $p$-vector of predictors or features; and the $\epsilon_i$ are errors.  By convention we write vectors as column vectors.  Thus $x_i^T \beta$ will be our typical way of writing the inner product between the vectors $x_i$ and $\beta$.\marginnote[-4pc]{Notice we have no explicit intercept.  For now you can imagine that all the variables have had their sample means subtracted, making an intercept superfluous.  Or you can just assume that the leading entry in every $x_i$ is equal to 1, in which case $\beta_1$ will be an intercept term.}
+$$ \Omega_{12} = -\Sigma_{11}^{-1}\Sigma_{12}(\Sigma_{22}-\Sigma_{21}\Sigma_{11}^{-1} \Sigma_{12})^{-1}              $$
 
-Consider three classic inferential principles that are widely used to estimate $\beta$, the vector of regression coefficients.  In this context we will let $\hat{\beta}$ denote an estimate of $\beta$, $y = (y_1, \ldots, y_n)^T$ the vector of outcomes, $X$ the matrix of predictors whose ith row is $x_i^T$, and $\epsilon$ the vector of residuals $(\epsilon_1, \ldots, \epsilon_n)^T$.  
+$$ \Omega_{21} = -\Sigma_{22}^{-1}\Sigma_{21} (\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21})^{-1}       $$
+
+$$ \Omega_{22} = (\Sigma_{22}-\Sigma_{21}\Sigma_{11}^{-1} \Sigma_{12})^{-1}              $$\\
+
+
+{\bf Part C}\\
+\bigskip
+$$f(x_1|x_2) = \frac{f(x_1, x_2)}{f(x_2)}$$ 
+
+We know 
+
+
+$$f(x_1,x_2) \propto   \exp\left(-\frac{1}{2} (x - \mu)^T\Omega(x -\mu)\right)  $$\\
+
+so
+ $$f(x_1|x_2) \propto  \exp\left(-\frac{1}{2} (x - \mu)^T\Omega(x -\mu)\right) $$\\
  
-\begin{description}
-\item[Least squares:] make the sum of squared errors as small as possible.  We can express this in terms of the squared Euclidean norm of the residual vector $\epsilon = y - X \beta$:  
-$$
-\hat{\beta} = \arg \min_{\beta \in \mathcal{R}^p} \Vert y - X\beta \Vert_2^2 =  \arg \min_{\beta \in \mathcal{R}^p} (y - X\beta)^T (y-X \beta)
-$$
-\item[Maximum likelihood under Gaussianity:] assume that the errors are independent, mean-zero normal random variables with common variance $\sigma^2$.  Choose $\hat{\beta}$ to maximize the likelihood:
-$$
-\hat{\beta} = \arg \max_{\beta \in \mathcal{R}^p} \left\{ \prod_{i=1}^n p(y_i \mid \beta, \sigma^2) \right\} \, .
-$$
-Here $p_i(y_i \mid \sigma^2)$ is the conditional probability density function of $y_i$, given the model parameters $\beta$ and $\sigma^2$.  Note that an equivalent way to write the likelihood is to say that the response vector $y$ is multivariate normal with mean $X \beta$ and covariance matrix $\sigma^2 I$, where $I$ is the $n$-dimensional identity matrix.  
+ $$f(x_1,x_2) \propto   \exp\left(-\frac{1}{2}\begin{bmatrix}
+x_1 - \mu_1 \\
+x_2 - \mu_2 
+\end{bmatrix}^T \begin{bmatrix}
+\Omega_{11} & \Omega_{12} \\
+\Omega_{21} & \Omega_{22} 
+\end{bmatrix}  \begin{bmatrix}
+x_1 - \mu_1 \\
+x_2 - \mu_2 
+\end{bmatrix}\right)  $$\\
+  
+$$\propto \exp\left\{ -\frac{1}{2}\begin{bmatrix} (x_1-\mu_1)^T\Omega_{11} + (x_2-\mu_2)^T\Omega_{21}& (x_1-\mu_1)^T\Omega_{12} + (x_2-\mu_2)^T\Omega_{22}\end{bmatrix} \begin{bmatrix}
+x_1 - \mu_1 \\
+x_2 - \mu_2 
+\end{bmatrix} \right \}$$\\
 
-\item[Method of moments:] Choose $\hat{\beta}$ so that the sample covariance between the errors and each of the $p$ predictors is exactly zero.  (That is, the sample covariance of $\epsilon$ and each column of $X$ is zero.)  This gives you a system of $p$ equations and $p$ unknowns.
-\end{description}
+\begin{equation*}
+\begin{split}
+\propto \exp \{ (-1/2)[(x_1-\mu_1)^T\Omega_{11}(x_1 - \mu_1) +(x_2-\mu_2)^T\Omega_{21}(x_1 - \mu_1) + \\ (x_1-\mu_1)^T\Omega_{12}(x_2 - \mu_2 ) +(x_2-\mu_2)^T\Omega_{22}(x_2 - \mu_2 )]\}
+\end{split}
+\end{equation*}\\
 
-\begin{enumerate}[(A)]
+using $\Omega_{12}^T = \Omega_{21}$ and dropping last term\\
 
-\item Show that all three of these principles lead to the same estimator.  What is the variance of this estimator under the assumption that each $\epsilon_i$ is independent and identically distribution with variance $\sigma^2$?  
 
-\item As mentioned above, the estimator in the previous part corresponds to the assumption that $y \sim N(X \beta, \sigma^2 I)$.  What happens if we instead postulate that $y \sim N(X \beta, \Sigma)$, where $\Sigma$ is an arbitrary known covariance matrix, not necessarily proportional to the identity?  What is the maximum likelihood estimate for $\beta$ now, and what is the variance of this estimator?   
+\begin{equation*}
+\propto \exp \{ (-1/2)[(x_1-\mu_1)^T\Omega_{11}(x_1 - \mu_1)  + 2 (x_1-\mu_1)^T\Omega_{12}(x_2 - \mu_2 ) ]\}
+\end{equation*}\\
 
-\item Show that in the special case where $\Sigma$ is a diagonal matrix, i.e. $\Sigma = \mbox{diag}(\sigma_1^2, \sigma_2^2, \ldots, \sigma_n^2)$, that the MLE is the familiar \emph{weighted least squares} estimator.  That is, show that $\hat \beta$ is the solution to the following linear system of $P$ equations in $P$ unknowns:
-$$
-(X^T W X) \hat \beta = X^T W y \, ,
-$$
-where $W$ is a diagonal matrix of weights that you should relate to the $\sigma_i^2$'s.  
 
-\end{enumerate}
+Complete the square\\
 
-\section{Some practical details}
+This looks like (where A is square symmetric) \\
 
-\begin{enumerate}[(A)]
+$$(x+h)^TA(x+h) = x^TAx+2x^TAh+h^TAh $$\\
 
-\item Let's continue with the weighted least-squares estimator you just characterized, i.e.~the solution to the linear system
-$$
-(X^T W X) \hat \beta = X^T W y \, ,
-$$
-One way to calculate $\hat{\beta}$ is to: (1) recognize that, trivially, the solution to the above linear system must satisfy $\hat \beta = (X^T W X)^{-1} X^T W y$; and (2) to calculate this directly, i.e.~by inverting $X^T W X$.  Let's call this the ``inversion method'' for calculating the WLS solution.
+Where $A \equiv \Omega_{11}$, $x \equiv (x_1 - \mu_1)$, and $h \equiv \Omega_{11}^{-1}\Omega_{12}(x_2-\mu_2)$ \\
 
-Numerically speaking, is the inversion method the fastest and most stable way to actually solve the above linear system?  Do some independent sleuthing on this question.\footnote{\url{https://www.google.com/search?q=Why+Shouldn\%27t+I+Invert+That+Matrix}}.   Summarize what you find, and provide pseudo-code for at least one alternate method based on matrix factorizations---call it ``your method'' for short.\footnote{Our linear system is not a special flower; whatever you discover about general linear systems should apply here.}
 
-\item Code up functions that implement both the inversion method and your method for an arbitrary $X$, $y$, and set of weights $W$.  Obviously you shouldn't write your own linear algebra routines for doing things like multiplying or decomposing matrices.  But don't use a direct model-fitting function like R's ``lm'' either.   Your actual code should look a lot like the pseudo-code you wrote for the previous part.\footnote{Be attentive to how you multiply a matrix by a diagonal matrix, or you'll waste a lot of time multiplying stuff by zero.}
+so, ignoring last term\\
 
-Now simulate some silly data from the linear model for a range of values of $N$ and $P$.  (Feel free to assume that the weights $w_i$ are all 1.)  It doesn't matter how you do this---e.g.~everything can be Gaussian if you want.  (We're not concerned with statistical principles in this problem, just with algorithms, and using least squares is a pretty terrible idea for enormous linear models, anyway.)  Just make sure that you explore values of $P$ up into the thousands, and that $N > P$.  Benchmark the performance of the inversion solver and your solver across a range of scenarios.\footnote{In R, a simple library for this purpose is microbenchmark.}
+\begin{equation*}
+\propto \exp \{ (-1/2) [ (x_1 - \mu_1)+\Omega_{11}^{-1}\Omega_{12}(x_2-\mu_2)]^T\Omega_{11} [ (x_1 - \mu_1)+\Omega_{11}^{-1}\Omega_{12}(x_2-\mu_2)]\}
+\end{equation*}\\
 
-\end{enumerate}
+
+\begin{equation*}
+\propto \exp \{ (-1/2) [ x_1 - (\mu_1+\Omega_{11}^{-1}\Omega_{12}(x_2-\mu_2))]^T\Omega_{11} [ x_1 - (\mu_1+\Omega_{11}^{-1}\Omega_{12}(x_2-\mu_2))]\}
+\end{equation*}\\
+
+Where \\
+
+$$ \Omega_{11} = (\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21})^{-1} $$
+
+and \\
+
+$$ \Omega_{11}^{-1} \Omega_{12} = \Omega_{11}^{-1}\Omega_{21}^T =\Omega_{11}^{-1} [\Sigma_{22}^{-1}\Sigma_{21}\Omega_{11}]^T = \Omega_{11}^{-1}\Omega_{11}\Sigma_{21}^T\Sigma_{22}^{-T} = \Sigma_{21}\Sigma_{22}^{-1}$$\\
+
+This has the form of a multivariate normal:
+
+$$ \sim N(\mu_1+\Sigma_{21}\Sigma_{22}^{-1}[x_2-\mu_2],\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21})$$\\
+
+{\bf \large Multiple regression: three classical principles for inference} 
+\bigskip
+
+{\bf Part A}\\
+\bigskip
+\bigskip
+\begin{itemize}
+    \item Least squares 
+\end{itemize}
+\medskip
+
+Find $\beta$ such that $(y-X\beta)^T (y-X\beta)$ is minimized.
+$$(y-X\hat{\beta})^T (y-X\hat{\beta}) $$
+$$=y^Ty-y^TX\hat{\beta} -\hat{\beta}^TX^Ty  + \hat{\beta}^TX^TX\hat{\beta}$$
+$$=y^Ty-(X\hat{\beta})^Ty -(X\hat{\beta})^Ty  + \hat{\beta}^TX^TX\hat{\beta}$$
+$$=y^Ty -2(X\hat{\beta})^Ty  + \hat{\beta}^TX^TX\hat{\beta}$$
+
+Let
+
+$$ \frac{\partial}{\partial \hat{\beta}}[y^Ty -2\hat{\beta}^TX^Ty  + \hat{\beta}^TX^TX\hat{\beta}] = 0$$
+$$ -2y^TX + 2X^TX\hat{\beta} = 0$$
+$$ 2X^TX\hat{\beta} = 2y^TX $$
+$$ \hat{\beta} = (X^TX)^{-1}y^TX $$\\
+
+\begin{itemize}
+    \item Maximum Likelihood
+\end{itemize}
+\medskip
+
+We assume $\epsilon_i \sim N(0, \sigma^2)$
+$$ P(y_i|\hat{\beta}, \sigma^2) \propto \prod_{i=1}^{n} \exp\left\{-\frac{1}{2\sigma^2}(y_i - x_i^T\hat{\beta})^2 \right \}$$
+
+$$  \propto \exp\left\{-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(y_i - x_i^T\hat{\beta})^2 \right \}$$
+
+
+$$  \propto \exp\left\{-\frac{1}{2\sigma^2}(y-X\hat{\beta})^T(y-X\hat{\beta}) \right \}$$
+
+We can take the log and maximize
+
+
+$$ \frac{\partial}{\partial \hat{\beta}}[y^Ty -2\hat{\beta}^TX^Ty  + \hat{\beta}^TX^TX\hat{\beta}] = 0$$
+
+We end up with the same thing as before. \\
+
+\begin{itemize}
+    \item Moment matching
+\end{itemize}
+\medskip
+
+Find $\hat{\beta}$ so that $cov(\epsilon, x_j)=0$
+
+$$ \frac{1}{n-1}\sum_{i=1}^{n}(x_{ij}-\bar{x_j})\epsilon_i=0$$
+
+$$X^T \epsilon = 0$$ 
+
+Assuming $\bar{x}=0$.\\
+
+
+Then,
+
+$$ X^T\epsilon =0$$
+$$ X^T(y-X\hat{\beta}) =0$$
+$$ X^Ty-X^TX\hat{\beta} =0$$
+$$ \hat{\beta}  =(X^TX)^{-1} X^Ty$$
+
+Note $$ y \sim N(X\beta, \sigma^2I)$$\\
+
+$$ E(\hat{\beta}) = (X^TX)^{-1} X^TE(y) =(X^TX)^{-1} X^T X\beta = \beta$$
+
+
+
+$$ cov(\hat{\beta}) = (X^TX)^{-1} X^Tcov(y)[(X^TX)^{-1}X^T]^{T}$$
+$$ = (X^TX)^{-1} X^T(\sigma^2I)[(X^TX)^{-1}X^T]^{T}$$
+$$ = (X^TX)^{-1} X^T(\sigma^2I)X(X^TX)^{-T}$$
+$$ = (X^TX)^{-1} X^T(\sigma^2I)X(X^TX)^{-1}$$
+$$ =\sigma^2 [(X^TX)^{-1} X^TX(X^TX)^{-1}]$$
+$$ =\sigma^2(X^TX)^{-1}$$
+
+
+{\bf Part B}\\
+\bigskip
+\bigskip
+
+We want to maximize
+
+
+$$ -\frac{1}{2}(y-X\hat{\beta})^T\Sigma^{-1}(y-X\hat{\beta}) $$
+$$ \propto \frac{\partial}{\partial\hat{\beta}} [-y^T\Sigma^{-1}y+\hat{\beta}^TX^T\Sigma^{-1}y+y^T \Sigma^{-1}X\hat{\beta}-\hat{\beta}^TX^T\sigma^{-1}X\hat{\beta} ] = 0 $$
+
+$$ 2y^T\Sigma^{-1}X-2X^T\Sigma^{-1}X\hat{\beta}=0$$
+
+$$ \hat{\beta}=(X^T\Sigma^{-1}X)^{-1}y^T\Sigma^{-1}X =(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}y $$
+
+As before, 
+
+$$ E(\hat{\beta}) = \beta$$
+
+
+$$ cov(\hat{\beta}) = [(X^T\Sigma^{-1}X)^{-1}\Sigma^{-1}]^{-1} X^Tcov(y)[(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}]^{T}$$
+$$  = [(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}] \Sigma[(X^T\Sigma^{-1}X)^{-1}X^T\Sigma^{-1}]^{T}$$
+$$ = (X^T\Sigma^{-1}X)^{-1}$$\\
+{\bf Part C}\\
+\bigskip
+\bigskip
+
+We want to maximize
+
+
+$$ -\frac{1}{2}(y-X\hat{\beta})^T\Sigma^{-1}(y-X\hat{\beta}) $$\\
+Where W is a diagonal precisions matrix with entries $w_i = \frac{1}{\sigma_i^2}$\\
+
+
+We get\\
+
+$$ \hat{\beta} =(X^TWX)^{-1}X^TWy $$\\
 
 
 \end{document}

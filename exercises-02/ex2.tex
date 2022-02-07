@@ -1,0 +1,158 @@
+\documentclass[12pt]{amsart}
+
+\usepackage[T1]{fontenc}
+\usepackage{newpxtext}
+\usepackage{newpxmath}
+
+
+\usepackage{amsmath}
+\addtolength{\hoffset}{-2.25cm}
+\addtolength{\textwidth}{4.5cm}
+\addtolength{\voffset}{-2.5cm}
+\addtolength{\textheight}{5cm}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{15pt}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[colorlinks = true, linkcolor = black, citecolor = black, final]{hyperref}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{ marvosym }
+\newcommand{\ds}{\displaystyle}
+\pagestyle{myheadings}
+\setlength{\parindent}{0in}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+{\scshape SDS383D} \hfill {\scshape \Large Exercises \#2} \hfill {\scshape Juliette F}
+ \medskip
+\hrule
+\bigskip
+\bigskip
+
+{\bf \large Exponential families} 
+\bigskip
+
+
+
+{\bf Part A} 
+\bigskip
+
+Show that the normal, binomial and poisson distribution are exponential
+
+\begin{itemize}
+    \item $Y \sim N(\mu, \sigma^2) $
+\end{itemize}
+\bigskip
+\bigskip
+
+\begin{align*}
+f(y|\mu,\sigma^2)&= -\frac{1}{\sqrt{2\pi}\sigma} \exp \left\{ -\frac{1}{2} \frac{(y-\mu)^2}{\sigma^2}\right\}\\
+&=\exp \left\{ -\frac{1}{2} \frac{y^2-2y\mu + \mu^2}{\sigma^2}  -\frac{1}{2}\log ( 2\pi\sigma^2)\right\} \\
+&=  \exp \left\{ -\frac{1}{2} \frac{-2y\mu + \mu^2}{\sigma^2} + \frac{y^2}{2\sigma^2} -\frac{1}{2}\log ( 2\pi\sigma^2)\right\}
+\end{align*}
+
+\bigskip
+\bigskip
+
+so $b(\theta) = -\frac{1}{2}\mu^2$, $a(\phi) = \sigma^2$, and $ c(y;\phi) =-\frac{1}{2}\log ( 2\pi\sigma^2) + \frac{y^2}{2\sigma^2} $
+
+\bigskip
+\bigskip
+
+
+\begin{itemize}
+    \item $Y=Z/N $ where $Z \sim Binom(N, P)$
+\end{itemize}
+\medskip
+
+
+\begin{align*}
+f(k|n,p)&= {n \choose k} p^k (1-p)^{n-k}\\
+\log[f(k|n,p)]&= \log[{n \choose k} p^k (1-p)^{n-k}]\\
+&=\log[{n \choose k}]+k\log[p] + (n-k) \log(1-p)]\\
+&=\log[{n \choose k}]+k\log[p/(1-p)] -k \log(1-p)]\\
+f(k|n,p)&= \exp\{\log[{n \choose k}]+k\log[p/(1-p)] -k \log(1-p)]\}
+\end{align*}\\
+
+Dividing by $n$:
+
+\begin{align*}
+f(k|n,p)&= \exp\{\log[{n \choose k}]+k\log[p/(1-p)] +k \log(1-p) - \log(n)]\}
+\end{align*}\\
+We see that $\theta \equiv\log[p/(1-p)] $ and $c(y, \phi) \equiv \log[{n \choose k}] - \log(N) $. We can re-write $p = \exp\theta/(1+\exp\theta)$ and $1-p = 1/(1+\exp\theta)$. So, $k \log(1-p) = -n \log(1+\exp\theta)$, and $b(\theta) \equiv n \log(1+\exp\theta)$, and $a(\phi)=1 $. 
+
+\bigskip
+\bigskip
+
+
+\begin{itemize}
+    \item $Y \sim Poisson(\lambda) $
+\end{itemize}
+\bigskip
+\bigskip
+
+\begin{align*}
+f(k|\lambda)&= \lambda^k \frac{\exp(-\lambda)}{k!}\\
+&= \exp(-\lambda +\log[\lambda^k] - \log[k!])\\
+&= \exp(-\lambda +k\log[\lambda] - \log[k!])\\
+\end{align*}\\
+
+So $\theta \equiv log(\lambda)$, $b(\theta) = \lambda \equiv \exp \theta$, $a(\phi)\equiv1$, $c(k,\phi)\equiv-log[k!]$
+
+\bigskip
+
+\bigskip
+{\bf Part B} \\
+\bigskip
+Prove that the mean of the score function is 0. Start with:
+\begin{align*}
+     \int_{-\infty}^{\infty} f(x|\theta) \,dx = 1
+\end{align*}
+
+
+\begin{align*}
+     \int_{-\infty}^{\infty} \frac{\partial}{\partial \theta}f(y|\theta) \,dy = 0
+\end{align*}
+
+\begin{align*}
+     \int_{-\infty}^{\infty} \frac{f(y|\theta) }{f(y|\theta) }\frac{\partial}{\partial \theta}f(y|\theta) \,dy = 0
+\end{align*}
+
+
+\begin{align*}
+     \int_{-\infty}^{\infty} f(y|\theta)\frac{\partial}{\partial \theta}ln[f(y|\theta)] \,dy = 0
+\end{align*}
+
+or 
+
+
+\begin{align*}
+     E\{\frac{\partial}{\partial \theta}ln[f(y|\theta)] \} = 0
+\end{align*}
+
+In our case we are looking for
+
+\begin{align*}
+     E\{\frac{\partial}{\partial \theta}\sum_{i=1}^{n}  ln  [f(y_i|\theta)] \} 
+\end{align*}
+\begin{align*}
+     =E\{ \sum_{i=1}^{n} \frac{\partial}{\partial \theta} ln [f(y_i|\theta)] \} 
+\end{align*}
+
+Since $ E(a+b) = E(a) + E(b)$
+
+\begin{align*}
+   E\{ \sum_{i=1}^{n} \frac{\partial}{\partial \theta} ln [f(y_i|\theta)] \}  = E(s|\theta)=0
+\end{align*}\\
+
+Prove that the variance of the score function is
+
+
+
+\end{document}
