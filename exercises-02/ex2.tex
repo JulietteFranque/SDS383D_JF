@@ -60,7 +60,7 @@ f(y|\mu,\sigma^2)&= -\frac{1}{\sqrt{2\pi}\sigma} \exp \left\{ -\frac{1}{2} \frac
 \bigskip
 \bigskip
 
-so $b(\theta) = -\frac{1}{2}\mu^2$, $a(\phi) = \sigma^2$, and $ c(y;\phi) =-\frac{1}{2}\log ( 2\pi\sigma^2) + \frac{y^2}{2\sigma^2} $
+so $b(\theta) = \frac{1}{2}\mu^2$, $a(\phi) = \sigma^2$, and $ c(y;\phi) =-\frac{1}{2}\log ( 2\pi\sigma^2) + \frac{y^2}{2\sigma^2} $
 
 \bigskip
 \bigskip
@@ -73,19 +73,15 @@ so $b(\theta) = -\frac{1}{2}\mu^2$, $a(\phi) = \sigma^2$, and $ c(y;\phi) =-\fra
 
 
 \begin{align*}
-f(k|n,p)&= {n \choose k} p^k (1-p)^{n-k}\\
-\log[f(k|n,p)]&= \log[{n \choose k} p^k (1-p)^{n-k}]\\
-&=\log[{n \choose k}]+k\log[p] + (n-k) \log(1-p)]\\
-&=\log[{n \choose k}]+k\log[p/(1-p)] -k \log(1-p)]\\
-f(k|n,p)&= \exp\{\log[{n \choose k}]+k\log[p/(1-p)] -k \log(1-p)]\}
+f(yn|n,p)&= {n \choose yn} p^{yn} (1-p)^{n-yn}\\
+\log[f(yn|n,p)]&= \log[{n \choose yn} p^{yn} (1-p)^{n-yn}]\\
+&=\log[{n \choose yn}]+(yn)\log[p] + n(1-y) \log(1-p)]\\
+&=\log[{n \choose yn}]+(yn)\log[p/(1-p)] -(yn) \log(1-p)]\\
 \end{align*}\\
 
-Dividing by $n$:
 
-\begin{align*}
-f(k|n,p)&= \exp\{\log[{n \choose k}]+k\log[p/(1-p)] +k \log(1-p) - \log(n)]\}
-\end{align*}\\
-We see that $\theta \equiv\log[p/(1-p)] $ and $c(y, \phi) \equiv \log[{n \choose k}] - \log(N) $. We can re-write $p = \exp\theta/(1+\exp\theta)$ and $1-p = 1/(1+\exp\theta)$. So, $k \log(1-p) = -n \log(1+\exp\theta)$, and $b(\theta) \equiv n \log(1+\exp\theta)$, and $a(\phi)=1 $. 
+
+We see that $\theta \equiv\log[p/(1-p)] $ and $c(y, \phi) \equiv \log[{n \choose ny}] - \log(N) $. We can re-write $p = \exp\theta/(1+\exp\theta)$ and $1-p = 1/(1+\exp\theta)$. So, $k \log(1-p) = -n \log(1+\exp\theta)$, and $b(\theta) \equiv n \log(1+\exp\theta)$, and $a(\phi)=1/n $. 
 
 \bigskip
 \bigskip
@@ -151,8 +147,75 @@ Since $ E(a+b) = E(a) + E(b)$
    E\{ \sum_{i=1}^{n} \frac{\partial}{\partial \theta} ln [f(y_i|\theta)] \}  = E(s|\theta)=0
 \end{align*}\\
 
-Prove that the variance of the score function is
+Prove that the variance of the score function is $var[s(\theta)]=-H(\theta)$
+
+\begin{align*}
+   0 &=  E[s(\theta)]\\
+   0 &= \int_{-\infty}^{\infty} f(y|\theta)\frac{\partial}{\partial \theta}ln[f(y|\theta)] \,dy\\
+   0 &= \int_{-\infty}^{\infty} \frac{\partial}{\partial \theta^T} \{ f(y|\theta)\frac{\partial}{\partial \theta}ln[f(y|\theta)] \ \}dy\\
+   &=  \int_{-\infty}^{\infty}f(y|\theta) \frac{\partial^2}{\partial \theta^T\theta}  ln[f(y|\theta)]dy +  \int_{-\infty}^{\infty}\frac{\partial}{\partial \theta}ln[f(y|\theta)] \frac{\partial}{\partial \theta^T}  f(y|\theta)   \ dy\\
+   &= E(\frac{\partial^2}{\partial \theta^T\theta}  ln[f(y|\theta)]) + \int_{-\infty}^{\infty}\frac{\partial}{\partial \theta}ln[f(y|\theta)] \frac{\partial}{\partial \theta^T}  f(y|\theta) \frac{f(y|\theta)}{f(y|\theta)} dy\\
+   &= E(\frac{\partial^2}{\partial \theta^T\theta}  ln[f(y|\theta)]) + \int_{-\infty}^{\infty}\frac{\partial}{\partial \theta}ln[f(y|\theta)] \frac{\partial}{\partial \theta^T}  ln[f(y|\theta)]  f(y|\theta)dy\\
+   &=E(\frac{\partial^2}{\partial \theta^T\theta}  ln[f(y|\theta)]) + E(\frac{\partial}{\partial \theta}ln[f(y|\theta)] \frac{\partial}{\partial \theta^T}  ln[f(y|\theta)])
+\end{align*}\\
+
+or, since the mean of the score function is zero:
 
 
+\begin{align*}
+    E[s(\theta)s(\theta)^T]= var[s(\theta)] =-E\left(\frac{\partial^2 ln[f(y|\theta)]}{\partial \theta^T\theta} \right ) 
+\end{align*}
+
+
+\bigskip
+{\bf Part C} \\
+\bigskip
+
+If $Y \sim f(y|\theta, \phi)$ prove that $E(Y)=b'(\theta)$ and $var(Y)=a(\phi)b''(\theta)$
+
+
+\begin{align*}
+   \frac{\partial}{\partial \theta}ln[f(y; \beta, \phi)] &=  \frac{\partial}{\partial \theta} \left\{ \frac{y\theta-b(\theta)}{a(\phi)}+c(y;\phi) \right\}\\
+   &= \frac{y-b'(\theta)}{a(\phi)}\\
+\end{align*}
+
+Since we know the expected value of this is zero from previous part:
+
+\begin{align*}
+   E\left(\frac{y-b'(\theta)}{a(\phi)}\right)=0
+\end{align*}
+\begin{align*}
+   E(y) = b'(\theta)
+\end{align*}
+
+For the variance, 
+\begin{align*}
+    var[s(\theta)] &=-E\left(\frac{\partial^2 ln[f(y|\theta)]}{\partial \theta^T\theta} \right ) \\
+    &=-E\left(\frac{\partial^2}{\partial \theta^T\theta}\left\{ \frac{y\theta-b(\theta)}{a(\phi)}+c(y;\phi) \right\} \right )\\
+    &=-E\left( -\frac{b''(\theta)}{a(\phi)}\right )\\
+    &=  \frac{b''(\theta)}{a(\phi)}
+\end{align*}
+
+
+or 
+\begin{align*}
+   var( \frac{\partial}{\partial \theta }ln[f(y|\theta)])
+    &=var\left\{ \frac{y-b'(\theta)}{a(\phi)}\right\}\\
+    &= \frac{1}{\alpha(\phi)^2}var(y)
+\end{align*}
+
+so $var(y)=a(\phi)b''(\theta)$
+
+
+\bigskip
+{\bf Part D} \\
+\bigskip
+
+$E(y)= b'(\theta)=\mu$ and $var(y)=a(\phi)b''(\theta)=(1)(\sigma^2)=\sigma^2$\\
+
+\bigskip
+
+{\bf \large Generalized linear models} 
+\bigskip
 
 \end{document}
