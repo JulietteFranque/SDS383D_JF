@@ -83,7 +83,7 @@ class LogisticRegression:
 
     def _do_newton(self, X, y):
         """ use newton to fit model"""
-        self.betas = np.zeros(X.shape[1])
+        self.betas = np.random.uniform(size=X.shape[1])
         for it in tqdm(range(self.max_iteration)):
             hessian = self._calculate_hessian(X, self.betas)
             gradient = self._get_score_function(X, y, self.betas)
