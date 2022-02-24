@@ -81,7 +81,7 @@ f(yn|n,p)&= {n \choose yn} p^{yn} (1-p)^{n-yn}\\
 
 
 
-We see that $\theta \equiv\log[p/(1-p)] $ and $c(y, \phi) \equiv \log[{n \choose ny}] - \log(N) $. We can re-write $p = \exp\theta/(1+\exp\theta)$ and $1-p = 1/(1+\exp\theta)$. So, $k \log(1-p) = -n \log(1+\exp\theta)$, and $b(\theta) \equiv n \log(1+\exp\theta)$, and $a(\phi)=1/n $. 
+We see that $\theta \equiv\log[p/(1-p)] $ and $c(y, \phi) \equiv \log[{n \choose ny}] - \log(N) $. We can re-write $p = \exp\theta/(1+\exp\theta)$ and $1-p = 1/(1+\exp\theta)$. So, $k \log(1-p) =  \log(1+\exp\theta)$, and $b(\theta) \equiv  \log(1+\exp\theta)$, and $a(\phi)=1/n $. 
 
 \bigskip
 \bigskip
@@ -215,7 +215,258 @@ $E(y)= b'(\theta)=\mu$ and $var(y)=a(\phi)b''(\theta)=(1)(\sigma^2)=\sigma^2$\\
 
 \bigskip
 
-{\bf \large Generalized linear models} 
+{\bf \large Generalized linear models} \\
 \bigskip
+\bigskip
+
+{\bf Part A} \\
+\bigskip
+
+Show 
+
+\begin{align*}
+\theta_i &= (b')^{-1} \Big( g^{-1}(x_i^T \beta) \Big)  
+\end{align*}
+\begin{align*}
+\mbox{var} (Y_i ) &=  \frac{\phi}{w_i} V(\mu_i)
+\end{align*}
+
+We know 
+
+\begin{align*}
+g(\mu_i) = x_i^T\beta\\
+\mu_i = g^{-1}(x_i^T\beta) 
+\end{align*}
+
+And 
+
+\begin{align*}
+\mu_i = b'(\theta_i) \\ 
+\end{align*}
+
+So, 
+
+\begin{align*}
+  b'(\theta_i) = g^{-1}(x_i^T\beta)  \\ 
+\end{align*}
+
+Or 
+\begin{align*}
+  \theta_i= b'^{-1}[g^{-1}(x_i^T\beta)]  \\ 
+\end{align*}
+
+
+We also know
+
+\begin{align*}
+  \mbox{var}(Y_i)=a(\phi)g''(\theta_i)  \\ 
+\end{align*}
+
+By inspection, $a(\phi)=\phi/w_i$, and we know $\theta_i = b'^{-1}(\mu_i)$, and 
+
+\begin{align*}
+  b''(\theta_i)  = b''[b'^{-1}(\mu_i)]
+\end{align*}
+
+So $V(\mu_i)=b''[b'^{-1}(\mu_i)]$.\\
+
+{\bf Part B} \\
+\bigskip
+
+(1) For the Poisson distribution, we know $\theta=log(\lambda)$ and $b(\theta)=\lambda=\exp(\theta)$.
+
+\begin{align*}
+    V(\mu_i)&=b''[b'^{-1}(\mu_i)]\\
+    &=exp(\theta)[ln(\mu_i)]\\
+    &= \mu_i
+\end{align*}
+
+(2) For the Binomial distribution, we know $\theta=\log[p/(1-p)]$ and $b(\theta)=\ln[1+\exp(\theta)]$. From this, we have that $b'(\theta)=\exp(\theta)/[1+\exp(\theta)]$ and $b''(\theta)=\exp(\theta)/[1+\exp(\theta)]^2$
+
+\begin{align*}
+    V(\mu_i)&=b''[b'^{-1}(\mu_i)]\\
+    &=\exp\{\ln [\mu_i/(1-\mu_i)]\}/[1+\exp\{\ln [\mu_i/(1-\mu_i)]\} ]^2\\
+    &= [\mu_i/(1-\mu_i)]/[1+\mu_i/(1-\mu_i)]^2\\
+    &=\mu_i(1-\mu_i)
+\end{align*}
+
+{\bf Part C} \\
+\bigskip
+\bigskip
+
+For the Poisson distribution we know that $b'^{-1}(\mu)=\log(\mu)$, so $g(\mu)=b'^{-1}(\mu) = \log(\mu)$\\
+
+ 
+For the Binomial distribution we know that $b'^{-1}(\mu)=\log(-\mu/[\mu-1])$, so $g(\mu)=b'^{-1}(\mu) = \log(-\mu/[\mu-1])$
+
+\bigskip
+\bigskip
+
+
+{\bf \large Fitting GLMs} \\
+\bigskip
+\bigskip
+
+{\bf Part A
+} \\
+\bigskip
+\bigskip
+
+We know that $\mu_i = b'(\theta_i)$, so $\partial \mu_i / \partial \theta_i=b''(\theta_i) = b''(b'^{-1}(\mu_i))=V(\mu_i)$. \\
+
+We also know that $x_i^T\beta = g(\mu_i)$, so $\beta = x_i^{-T}g(\mu_i)$ and $\partial \beta/ \partial \mu_i=x_i^{-T}g'(\mu_i)$
+
+Using the chain rule, 
+
+\begin{align*}
+    s(\beta, \theta) &= \frac{\partial \log L}{\partial  \theta}  \frac{\partial \theta}{\partial \mu} \frac{\partial \mu}{\partial \beta}\\
+    &= [ \frac{\partial}{\partial  \theta}   \sum_{i=1}^{n} \frac{y_i\theta_i-b(\theta_i)}{\phi/w_i} + c(y_i; \phi/w_i)]
+    \frac{\partial \theta}{\partial \mu}  \frac{\partial \mu}{\partial \beta}\\
+    &= [   \sum_{i=1}^{n} \frac{\partial}{\partial  \theta_i}  \frac{y_i\theta_i-b(\theta_i)}{\phi/w_i} + c(y_i; \phi/w_i)]
+    \frac{\partial \theta_i}{\partial \mu_i}  \frac{\partial \mu_i}{\partial \beta}\\
+    &=   \sum_{i=1}^{n} \frac{[y_i-b'(\theta_i)]x_i^T }{\phi/w_i V(\mu_i) g'(\mu_i)} 
+\end{align*}
+
+\bigskip
+
+{\bf Part B
+} \\
+\bigskip
+\bigskip
+
+Under the canonical link, $g^{-1}=b'$. Then,
+
+\begin{align*}
+    V(\mu) &= b''[(b')^{-1}(\mu)]\\
+    &= (g^{-1})'[g(\mu)]\\
+     &= 1/g'(g^{-1}(g(\mu)))\\
+     &=1/g'(\mu)
+\end{align*}
+
+So 
+
+\begin{align*}
+    s =  \sum_{i=1}^{n} \frac{[y_i-\mu_i]x_i }{\phi/w_i} 
+\end{align*}
+
+\bigskip
+
+{\bf Part C
+} \\
+\bigskip
+\bigskip
+
+For the binomial distribution, we found that $b(\theta)=\log(1+\exp \theta)$. Under the canonical link $g=b'^{-1}$, so $g^{-1}(\theta)= \exp\theta/(1+\exp \theta)$ and $g(\theta)=\log(-\theta/[\theta-1])$. So,
+
+
+\begin{align*}
+    \mu_i &= b'(\theta)=p\\
+\end{align*}
+
+and
+
+\begin{align*}
+    g(\mu_i) &= x_i^T\beta \\
+    \log(\mu_i/[1-\mu_i]) &= x_i^T\beta\\
+    \mu_i/[1-\mu_i] &= \exp(x_i^T\beta)\\
+    \mu_i &= \exp(x_i^T\beta)/[1+\exp(x_i^T\beta)])\\
+    &= 1/[\exp(-x_i^T\beta)+1]
+\end{align*}
+
+
+So the score function is
+
+\begin{align*}
+    s =  \sum_{i=1}^{n} \frac{(y_i-1/[\exp(-x_i^T\beta)+1])x_i }{1/n} 
+\end{align*}
+
+And from earlier, the log likelihood is:\\
+
+
+\begin{align*}
+    \log L =  \sum_{i=1}^{n}  (y_in)\log[p_i] + n(1-y_i)\log[1-p_i]
+\end{align*}
+
+\bigskip
+
+{\bf Part D
+} \\
+\bigskip
+\bigskip
+
+
+Find the Hessian of a GLM under the canonical link. We already know the score and need to differentiate it w.r.t $\beta_T$.
+
+\begin{align*}
+    s = \sum_{i=1}^{n} \frac{[y_i-\mu_i]x_i }{\phi/w_i} 
+\end{align*}
+
+
+
+\begin{align*}
+    H &= \frac{\partial}{\partial \beta^T} \sum_{i=1}^{n} \frac{[y_i-\mu_i]x_i }{\phi/w_i} \\
+    &= \frac{\partial}{\partial \beta^T} \sum_{i=1}^{n} \frac{[y_i-b'(x_i^T\beta)]x_i }{\phi/w_i} \\
+    &=\sum_{i=1}^{n} \frac{-x_i^Tb''(\beta^T x_i)x_i }{\phi/w_i} \\
+    &=-X^T\mbox{diag}[b''(X\beta)]X
+\end{align*}
+
+
+\bigskip
+
+{\bf Part E
+} \\
+\bigskip
+\bigskip
+WRONG 
+For the multivariate case, the second order Taylor expansion of the log likelihood is (let $q$ be the log likelihood)
+
+
+\begin{align*}
+   q(\beta) &= q(\beta_0) + s(\beta_0) (\beta-\beta_0) +\frac{1}{2}(\beta-\beta_0)^T H(\beta_0)(\beta-\beta_0)
+\end{align*}
+
+Given that $\beta_0$ is an approximation of $\beta$, assume that $s(\beta_0)\approx 0$, so
+
+\begin{align*}
+   q(\beta) &= q(\beta_0)  +\frac{1}{2}(\beta-\beta_0)^T H(\beta_0)(\beta-\beta_0)
+\end{align*}
+
+Now compare this to the desired form:
+
+\begin{align*}
+   q(\beta) &= -\frac{1}{2} (\Tilde{y}-X\beta)^T W(\Tilde{y}-X\beta) + c\\
+   &= -\frac{1}{2} (X\beta_0-X\beta)^T W(X\beta_0-X\beta) + c\\
+   &= -\frac{1}{2} (\beta_0-\beta)^TX^T WX(\beta_0-\beta) + c\\
+   &= -\frac{1}{2} (\beta-\beta_0)^TX^T WX(\beta-\beta_0) + c\\
+\end{align*}
+
+We see that $c\equiv (\beta_0)$ and $X^TWX\equiv -H(\beta_0) $, or $W\equiv -X^{-T}H(\beta_0) X^{-1} \equiv \mbox{diag}[b''(X\beta)]$
+
+Reminder, for logistic regression, $b''(x_i^T\beta) = e^{x_i^T\beta}/(1+ e^{x_i^T\beta})^2$
+
+Find the tangent to $q$:
+
+\begin{align*}
+    \nabla q(\beta)=q'(\beta_0) - X^TWX(\beta-\beta_0)
+\end{align*}
+
+Set equal to 0 and solve for $\beta$
+
+\begin{align*}
+   0=q'(\beta) - 2H(\beta_0)(\beta-\beta_0)
+\end{align*}
+
+\begin{align*}
+    H(\beta_0)^{-1}q'(\beta) = (\beta-\beta_0)
+\end{align*}
+This can be re-written as 
+\begin{align*}
+   \beta_{i+1}= \beta_{i}+H^{-1}\nabla q
+\end{align*}
+
+
+\begin{align*}
+   H(\beta_{i+1}-\beta_{i})=\nabla q
+\end{align*}
 
 \end{document}
