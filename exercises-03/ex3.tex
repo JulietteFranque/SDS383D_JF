@@ -1,0 +1,179 @@
+\documentclass[12pt]{amsart}
+
+\usepackage[T1]{fontenc}
+\usepackage{newpxtext}
+\usepackage{newpxmath}
+
+
+\usepackage{amsmath}
+\addtolength{\hoffset}{-2.25cm}
+\addtolength{\textwidth}{4.5cm}
+\addtolength{\voffset}{-2.5cm} 
+\addtolength{\textheight}{5cm}
+\setlength{\parskip}{0pt}
+\setlength{\parindent}{15pt}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[colorlinks = true, linkcolor = black, citecolor = black, final]{hyperref}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{ marvosym }
+\newcommand{\ds}{\displaystyle}
+\pagestyle{myheadings}
+\setlength{\parindent}{0in}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+{\scshape SDS383D} \hfill {\scshape \Large Exercises \#3} \hfill {\scshape Juliette F}
+ \medskip
+\hrule
+\bigskip
+\bigskip
+
+{\bf \large A simple Gaussian location model} 
+\bigskip
+
+
+
+
+{\bf Part A} 
+\bigskip
+
+Derive marginal probability of $\theta$
+
+\begin{align*}
+    P(\theta)&=\int_{0}^{\infty} P(\theta, \omega)d \omega \\
+    &= \omega^{(d+1)/2-1}\exp\left(-\omega \frac{\kappa \left(\theta -\mu \right)^2}{2}\right)\exp\left(-\omega \frac{\eta }{2}\right)\\
+    &= \omega^{(d+1)/2-1}\exp\left(-\omega \left[ \frac{\kappa \left(\theta -\mu \right)^2+\eta}{2} \right]\right)\\
+    &= \Gamma[(d+1)/2] \left[ \frac{\kappa \left(\theta -\mu \right)^2+\eta}{2}\right]^{-(d+1)/2}\\
+    & \propto \left[ \frac{\kappa \left(\theta -\mu \right)^2+\eta}{2}\right]^{-(d+1)/2}\\
+    & \propto \left[ \frac{\kappa \left(\theta -\mu \right)^2}{\eta}+1\right]^{-(d+1)/2}\\
+     & \propto \left[ \frac{\frac{1}{d} \left(\theta -\mu \right)^2}{\eta/d\kappa}+1\right]^{-(d+1)/2}\\
+\end{align*}
+This is student t with $loc=\mu$, $scale=(\eta/dk)^\frac{1}{2}$, $df=d$
+
+\bigskip
+
+
+
+
+{\bf Part B} 
+\bigskip
+
+Find $P(\theta, \omega|y)$. We already know $P(\theta, \omega)$. We need $P(y|\theta, \omega)$. $y$ is normally distributed, assume independence:
+
+\begin{align*}
+    P(y|\theta, \omega) & \propto  \prod_{i=1}^{n} \exp[-\frac{\omega}{2}(y_i-\theta)^2] \\
+    & \propto   \exp[-\frac{\omega}{2}\sum_{i=1}^{n}(y_i-\theta)^2] \\
+    & \propto   \exp[-\frac{\omega}{2}\sum_{i=1}^{n}(y_i - \bar{y} + \bar{y}-\theta)^2] \\
+     & \propto   \exp[-\frac{\omega}{2}\sum_{i=1}^{n}([y_i - \bar{y}]^2 + 2[y_i - \bar{y}][\bar{y}-\theta]+ [\bar{y}-\theta]^2) \\
+      & \propto   \exp[-\frac{\omega}{2} \{\sum_{i=1}^{n}[y_i - \bar{y}]^2 + 2[\bar{y}-\theta] \sum_{i=1}^{n}[y_i - \bar{y}]+ n[\bar{y}-\theta]^2 \}\\
+      & \propto   \exp[-\frac{\omega}{2} \{\sum_{i=1}^{n}[y_i - \bar{y}]^2 + 2[\bar{y}-\theta] [n\bar{y} - n\bar{y}]+ n[\bar{y}-\theta]^2 \}\\
+      & \propto   \exp[-\frac{\omega}{2} \{\sum_{i=1}^{n}[y_i - \bar{y}]^2+ n[\bar{y}-\theta]^2 \}\\
+      & \propto   \exp[-\frac{\omega}{2} \{S_y+ n[\bar{y}-\theta]^2 \}\\
+\end{align*}
+
+Now, 
+
+\begin{align*}
+    P(\theta, \omega|y) & \propto  P(y|\theta, \omega)P(\theta, \omega) \\
+    & \propto \exp[-\frac{\omega}{2} \{S_y+ n[\bar{y}-\theta]^2 \} \omega^{(d+1)/2-1}\exp\left(-\omega \frac{\kappa \left(\theta -\mu \right)^2}{2}\right)\exp\left(-\omega \frac{\eta }{2}\right) \\
+    & \propto \omega^{(d+1)/2-1}  \exp[-\frac{\omega}{2} \{S_y+ n[\bar{y}-\theta]^2 + \kappa \left(\theta -\mu \right)^2  + \eta \}]\\
+     & \propto \omega^{(d+1)/2-1}  \exp[-\frac{\omega}{2} \{S_y+ n[\bar{y}^2-2\bar{y}\theta+\theta^2] + \kappa (\theta^2 -2\mu\theta + \mu^2 )  + \eta \}]\\
+      & \propto \omega^{(d+1)/2-1}  \exp[-\frac{\omega}{2} \{S_y+ \theta^2(n+\kappa) -2 \theta(\bar{y}n +\mu \kappa) + n\bar{y}^2+\kappa \mu^2 +\eta \}]\\
+      & \propto \omega^{(d+1)/2-1}  \exp[-\frac{(n+\kappa)\omega}{2} \{ \theta^2 -2 \theta(\bar{y}n +\mu \kappa)/(n+\kappa) +(S_y +  n\bar{y}^2+\kappa \mu^2 +\eta)/(n+\kappa) \}]\\
+      & \propto \omega^{(d+1)/2-1}  \exp[-\frac{(n+\kappa)\omega}{2} \{ [\theta - (\bar{y}n +\mu \kappa)/(n+\kappa)]^2 - [(\bar{y}n +\mu \kappa)/(n+\kappa)]^2 + \\
+      &(S_y +  n\bar{y}^2+\kappa \mu^2 +\eta)/(n+\kappa) \}]\\
+       & \propto \omega^{(d+1)/2-1}  \exp[-\frac{\omega}{2} \{ (n+\kappa)[\theta - (\bar{y}n +\mu \kappa)/(n+\kappa)]^2 + kn[(\bar{y} +\mu )^2/(n+\kappa)] +
+      (S_y +\eta) \}]\\
+       & \propto \omega^{(d+1+n)/2-1}  \exp[-\frac{1}{2} \{ (n+\kappa)[\theta - (\bar{y}n +\mu \kappa)/(n+\kappa)]^2 ] + \\
+       &\exp[-\frac{1}{2} \{  kn[(\bar{y} +\mu )^2/(n+\kappa) \}] +
+      (S_y +\eta) \}]
+\end{align*}
+
+so, \\
+$d^* = d+n$\\
+$\mu^* = (\bar{y}n +\mu \kappa)/(n+\kappa)$\\
+$\kappa^*=n+\kappa$\\
+$\eta^*=kn[(\bar{y} - \mu )^2/(n+\kappa)]+
+      (S_y +\eta)$\\
+      
+\bigskip
+
+{\bf Part C} 
+\bigskip
+
+Find $P(\theta|y, \omega)$. 
+
+
+\begin{align*}
+    P(\theta, \omega|y) & \propto f(\theta, \omega)f(\omega)\\
+  P(\theta|y, \omega)   & \propto f(\theta, \omega)
+\end{align*}\\
+
+So $P(\theta|y, \omega)$ is the normal part of the posterior derived above:
+
+\begin{align*}
+    P(\theta|y, \omega) \sim N(\mu^*, (\omega \kappa^*)^{-1})
+\end{align*}
+
+\bigskip
+
+{\bf Part D} 
+\bigskip
+
+\begin{align*}
+    P(\omega|y) &= \int_{-\infty}^{\infty}P(\omega, \theta|y)d\theta\\
+    &\propto \int_{-\infty}^{\infty}\omega^{(d^\star+1)/2 - 1} \exp \left\{ - \omega \cdot \frac{\kappa^\star (\theta - \mu^\star)^2}{2}  \right\}
+\cdot \exp\left\{ -  \omega \cdot \frac{\eta^\star}{2}  \right\}d\theta \\
+&\propto \omega^{(d^\star+1)/2 - 1} \exp\left\{ -  \omega \cdot \frac{\eta^\star}{2}  \right\} \int_{-\infty}^{\infty} \exp \left\{ - \omega \cdot \frac{\kappa^\star (\theta - \mu^\star)^2}{2}  \right\}d\theta\\
+\end{align*}
+
+The integral is the integral of a normal distribution, which integrates to $\omega^{-1/2}$
+
+\begin{align*}
+    & \propto \omega^{(d^\star+1)/2 - 1} \exp\left\{ -  \omega \cdot \frac{\eta^\star}{2}  \right\} \omega^{-1/2} \\
+     & \propto \omega^{d^\star/2- 1} \exp\left\{ -  \omega \cdot \frac{\eta^\star}{2}  \right\}
+\end{align*}
+This is the kernel of $Ga(d^*/2, \eta^*/2)$
+
+\bigskip
+\bigskip
+{\bf Part E} 
+\bigskip
+
+Since the posterior has the same form as the prior, $P(\theta|y)$ is a student t distribution with $loc=\mu^*$, $scale=(\eta^*/d^*k^*)^\frac{1}{2}$, $df=d^*$
+
+\bigskip
+\bigskip
+{\bf Part F} 
+\bigskip
+
+$P(\theta)$ is a  student t with $loc=\mu$, $scale=(\eta/dk)^\frac{1}{2}$, $df=d$, $P(\omega)$ is a gamma $d/2,\eta/2$
+
+\bigskip
+\bigskip
+{\bf Part G} 
+
+\bigskip
+False
+\bigskip
+\bigskip
+
+{\bf Part H} 
+
+\bigskip
+True
+\bigskip
+\bigskip
+
+{\bf Part E} 
+
+\bigskip
+True
+\end{document}
