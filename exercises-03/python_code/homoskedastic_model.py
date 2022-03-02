@@ -74,12 +74,12 @@ class HomoskedasticModel:
         return 1
 
     def _calculate_K_star(self):
-        K_star = self.X.T @ self.lam @ self.X + self.K
+        K_star = (self.X.T * np.diag(self.lam)) @ self.X + self.K
         return K_star
 
     def _calculate_m_star(self):
         K_star = self._calculate_K_star()
-        m_star = np.linalg.inv(K_star) @ (self.X.T @ self.lam @ self.y + self.K @ self.m)
+        m_star = np.linalg.inv(K_star) @ ((self.X.T * np.diag(self.lam)) @ self.y + self.K @ self.m)
         return m_star
 
     def _calculate_d_star(self):
@@ -88,7 +88,7 @@ class HomoskedasticModel:
     def _calculate_eta_star(self):
         m_star = self._calculate_m_star()
         K_star = self._calculate_K_star()
-        eta_star = self.eta + self.y.T @ self.lam @ self.y + self.m.T @ self.K @ self.m - m_star.T @ K_star @ m_star
+        eta_star = self.eta + (self.y.T * np.diag(self.lam)) @ self.y + self.m.T @ self.K @ self.m - m_star.T @ K_star @ m_star
         return eta_star
 
     def calculate_posterior_distribution(self):

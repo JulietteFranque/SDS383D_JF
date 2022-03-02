@@ -59,8 +59,8 @@ class GibbsSampler(Model):
         self.traces['omega_trace'][it] = self.omega
 
     def fit(self):
+        d_star = self._calculate_d_star()
         for it in tqdm(range(self.n_iter)):
-            d_star = self._calculate_d_star()
             eta_star = self._calculate_eta_star()
             K_star = self._calculate_K_star()
             m_star = self._calculate_m_star()
