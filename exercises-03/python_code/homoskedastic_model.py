@@ -31,7 +31,7 @@ class HomoskedasticModel:
         self.d = self._initialize_d(d)
         self.eta = self._initialize_eta(eta)
         self.n = self.X.shape[0]
-        self.betas = None
+        self.coefs = None
 
     def _initialize_X(self, X):
         if self.fit_intercept:
@@ -97,17 +97,17 @@ class HomoskedasticModel:
         d_star = self._calculate_d_star()
         eta_star = self._calculate_eta_star()
         K_star = self._calculate_K_star()
-        shape = linalg.sqrtm(np.linalg.inv(K_star)) * (eta_star / d_star) ** (1 / 2)
+        shape = np.linalg.inv(K_star) * eta_star / d_star
         t_dist = multivariate_t(loc=mean, shape=shape, df=d_star)
         return t_dist
 
     def fit(self):
-        """calculate betas, best estimate is mean of t dist"""
-        self.betas = self._calculate_m_star()
+        """calculate coefs, best estimate is mean of t dist"""
+        self.coefs = self._calculate_m_star()
 
     def predict(self, X):
         X_pred = self._initialize_X(X)
-        y = X_pred@self.betas
+        y = X_pred@self.coefs
         return y
 
     def calculate_confidence_interval(self, alpha=0.05, num_samples=10000):
