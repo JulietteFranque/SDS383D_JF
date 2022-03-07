@@ -96,12 +96,10 @@ class GibbsSampler(Model):
         return X @ coefs
 
     def calculate_confidence_intervals(self, alpha=0.05):
-        sorted_matrix = np.sort(self.traces_kept['beta_trace'], axis=0)
-        num_samples = sorted_matrix.shape[0]
-        lower_index = int(num_samples * alpha / 2) - 1
-        higher_index = int(num_samples * (1 - alpha / 2)) - 1
-        conf_interval = sorted_matrix[lower_index, :], sorted_matrix[higher_index, :]
-        return conf_interval
+        traces = self.traces_kept['beta_trace']
+        lower = np.quantile(traces, alpha / 2, axis=0)
+        higher = np.quantile(traces, 1 - alpha / 2, axis=0)
+        return lower, higher
 
     def plot_coefs_histograms(self):
         fig, ax = plt.subplots(figsize=(15, 9))

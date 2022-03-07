@@ -148,17 +148,21 @@ class GibbsSamplerBeta(GibbsSampler):
         for it in tqdm(range(self.n_iter)):
             self._update_mu()
             self._update_beta()
-            dist_mu = self.mu - self.beta * self.group_controls
+            dist_mu = self.mu + self.beta * self.group_controls
             self._update_sigma_squared(dist_mu)
             self._update_tau_squared(dist_mu)
             self._update_theta(dist_mu)
             self._update_traces(it)
 
+    def _update_mu(self):
+        mean = self.theta.mean() - self.beta * self.group_controls.mean()
+        var = self.sigma_squared * self.tau_squared / self.P
+        self.mu = norm.rvs(loc=mean, scale=np.sqrt(var))
+
     def _update_beta(self):
-        mean = (np.mean(self.theta * self.group_controls) - self.mu * np.mean(
-            self.group_controls)) / np.mean(self.group_controls ** 2)
-        var = self.sigma_squared * self.tau_squared / (np.mean(self.group_controls ** 2) * self.P)
-        self.beta = norm(loc=mean, scale=np.sqrt(var)).rvs()
+        mean = (np.mean(self.theta * self.group_controls) - self.mu * np.mean(self.group_controls))/np.mean(self.group_controls**2)
+        var = self.sigma_squared * self.tau_squared / (self.P * np.mean(self.group_controls**2))
+        self.beta = norm.rvs(loc=mean, scale=np.sqrt(var))
 
     def _update_traces(self, it):
         self.traces['theta'][it, :] = self.theta

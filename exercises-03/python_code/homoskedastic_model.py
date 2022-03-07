@@ -113,9 +113,9 @@ class HomoskedasticModel:
     def calculate_confidence_interval(self, alpha=0.05, num_samples=10000):
         """sample from t distribution, order samples and take alpha bounds"""
         dist = self.calculate_posterior_distribution()
-        sorted_matrix = np.sort(dist.rvs(num_samples), axis=0)
-        lower_index = int(num_samples * alpha / 2) - 1
-        higher_index = int(num_samples * (1-alpha / 2)) - 1
-        conf_interval = sorted_matrix[lower_index, :], sorted_matrix[higher_index, :]
-        return conf_interval
+        samples = dist.rvs(num_samples)
+        lower = np.quantile(samples, alpha/2, axis=0)
+        higher = np.quantile(samples, 1-alpha/2, axis=0)
+
+        return lower, higher
 
