@@ -116,6 +116,5 @@ class HomoskedasticModel:
         samples = dist.rvs(num_samples)
         lower = np.quantile(samples, alpha/2, axis=0)
         higher = np.quantile(samples, 1-alpha/2, axis=0)
-
         return lower, higher
 
