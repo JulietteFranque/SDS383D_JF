@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 
-./exercises-02/gradient_descent.ipynb
+/exercises-02/gradient_descent.ipynb
