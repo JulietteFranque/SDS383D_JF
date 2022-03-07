@@ -24,11 +24,10 @@ class Initializer:
             return theta
         return self.mean_per_group
 
-    @staticmethod
-    def _initialize_mu(mu):
+    def _initialize_mu(self, mu):
         if mu is not None:
             return mu
-        return 0
+        return self.df.groupby('group').mean().mean()
 
     @staticmethod
     def _initialize_sigma_squared(sigma_squared):
