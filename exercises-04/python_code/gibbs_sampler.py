@@ -22,12 +22,12 @@ class Initializer:
     def _initialize_theta(self, theta):
         if theta is not None:
             return theta
-        return self.mean_per_group
+        return np.zeros(self.P)
 
     def _initialize_mu(self, mu):
         if mu is not None:
             return mu
-        return self.df.groupby('group').mean().mean()
+        return 0
 
     @staticmethod
     def _initialize_sigma_squared(sigma_squared):
@@ -62,14 +62,12 @@ class GibbsSampler(Initializer):
 
     def _update_tau_squared(self, dist_mu):
         alpha = (self.P + 1) / 2
-        beta = 1 / 2 * ((self.theta - dist_mu).T @ np.linalg.inv(self.sigma_squared * np.identity(self.P)) @ (
-                self.theta - dist_mu) + 1)
+        beta = 1 / (2 * self.sigma_squared) * (((self.theta - dist_mu)**2).sum() + 1)
         self.tau_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
 
     def _update_sigma_squared(self, dist_mu):
         alpha = (self.total_people + self.P) / 2
-        beta_first_term = (self.theta - dist_mu).T @ np.linalg.inv(self.tau_squared * np.identity(self.P)) @ (
-                self.theta - dist_mu)
+        beta_first_term = 0.5/self.tau_squared*((self.theta - dist_mu)**2).sum()
         beta_second_term = ((self.theta[self.df['group'].values - 1] - self.df['values']) ** 2).sum()
         beta = 0.5 * (beta_first_term + beta_second_term)
         self.sigma_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
@@ -152,6 +150,7 @@ class GibbsSamplerBeta(GibbsSampler):
             self._update_tau_squared(dist_mu)
             self._update_theta(dist_mu)
             self._update_traces(it)
+        self._remove_burn()
 
     def _update_mu(self):
         mean = self.theta.mean() - self.beta * self.group_controls.mean()
