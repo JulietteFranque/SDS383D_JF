@@ -17,7 +17,7 @@ class Initializer:
         self.total_people = self.n_i.sum()
 
     def _calculate_mean_per_group(self):
-        return self.df.groupby('group').mean().to_numpy().flatten()
+        return self.df.groupby('group')['values'].mean().to_numpy().flatten()
 
     def _initialize_theta(self, theta):
         if theta is not None:
@@ -60,14 +60,14 @@ class GibbsSampler(Initializer):
                        'mu': np.zeros(self.n_iter),
                        'theta': np.zeros((self.n_iter, self.P))}
 
-    def _update_tau_squared(self, dist_mu):
+    def _update_tau_squared(self, group_means):
         alpha = (self.P + 1) / 2
-        beta = 1 / (2 * self.sigma_squared) * (((self.theta - dist_mu)**2).sum() + 1)
+        beta = 1 / (2 * self.sigma_squared) * (((self.theta - group_means)**2).sum() + 1)
         self.tau_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
 
-    def _update_sigma_squared(self, dist_mu):
+    def _update_sigma_squared(self, group_means):
         alpha = (self.total_people + self.P) / 2
-        beta_first_term = 0.5/self.tau_squared*((self.theta - dist_mu)**2).sum()
+        beta_first_term = 0.5/self.tau_squared*((self.theta - group_means)**2).sum()
         beta_second_term = ((self.theta[self.df['group'].values - 1] - self.df['values']) ** 2).sum()
         beta = 0.5 * (beta_first_term + beta_second_term)
         self.sigma_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
@@ -77,8 +77,8 @@ class GibbsSampler(Initializer):
         var = self.sigma_squared * self.tau_squared / self.P
         self.mu = norm.rvs(loc=mean, scale=np.sqrt(var))
 
-    def _update_theta(self, dist_mu):
-        mean = (self.mean_per_group * self.tau_squared * self.n_i + dist_mu) / (self.tau_squared * self.n_i + 1)
+    def _update_theta(self, group_means):
+        mean = (self.mean_per_group * self.tau_squared * self.n_i + group_means) / (self.tau_squared * self.n_i + 1)
         cov_matrix = self.sigma_squared * self.tau_squared / (self.tau_squared * self.n_i + 1) * np.identity(self.P)
         self.theta = multivariate_normal.rvs(mean=mean, cov=cov_matrix)
 
@@ -122,10 +122,8 @@ class GibbsSampler(Initializer):
         for trace in keys:
             self.plot_other_histograms(trace)
 
-## stuff below gives weird results
-
 class GibbsSamplerBeta(GibbsSampler):
-    def __init__(self, df, theta=None, mu=None, sigma_squared=None, tau_squared=None, n_iter=5000, burn=100, beta=None, group_controls = np.array([0, 1])):
+    def __init__(self, df, theta=None, mu=None, sigma_squared=None, tau_squared=None, n_iter=5000, burn=100, beta=None):
         super().__init__(df=df, theta=theta, mu=mu, sigma_squared=sigma_squared, tau_squared=tau_squared, n_iter=n_iter, burn=burn)
         self.beta = self._initialize_beta(beta)
         self.traces = {'sigma_squared': np.zeros(self.n_iter),
@@ -133,7 +131,7 @@ class GibbsSamplerBeta(GibbsSampler):
                        'mu': np.zeros(self.n_iter),
                        'theta': np.zeros((self.n_iter, self.P)),
                        'beta': np.zeros(self.n_iter)}
-        self.group_controls = group_controls
+        self.group_controls = df.groupby('group')['treatment'].mean() - 1 # hacky -_-
 
     @staticmethod
     def _initialize_beta(beta):
@@ -145,10 +143,10 @@ class GibbsSamplerBeta(GibbsSampler):
         for it in tqdm(range(self.n_iter)):
             self._update_mu()
             self._update_beta()
-            dist_mu = self.mu + self.beta * self.group_controls
-            self._update_sigma_squared(dist_mu)
-            self._update_tau_squared(dist_mu)
-            self._update_theta(dist_mu)
+            group_means = self.mu + self.beta * self.group_controls
+            self._update_sigma_squared(group_means)
+            self._update_tau_squared(group_means)
+            self._update_theta(group_means)
             self._update_traces(it)
         self._remove_burn()
 
@@ -168,3 +166,4 @@ class GibbsSamplerBeta(GibbsSampler):
         self.traces['sigma_squared'][it] = self.sigma_squared
         self.traces['tau_squared'][it] = self.tau_squared
         self.traces['beta'][it] = self.beta
+
