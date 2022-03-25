@@ -24,7 +24,8 @@ class Initializer:
             return theta
         return np.zeros(self.P)
 
-    def _initialize_mu(self, mu):
+    @staticmethod
+    def _initialize_mu(mu):
         if mu is not None:
             return mu
         return 0
@@ -62,12 +63,12 @@ class GibbsSampler(Initializer):
 
     def _update_tau_squared(self, group_means):
         alpha = (self.P + 1) / 2
-        beta = 1 / (2 * self.sigma_squared) * (((self.theta - group_means)**2).sum() + 1)
+        beta = 1 / (2 * self.sigma_squared) * (((self.theta - group_means) ** 2).sum() + 1)
         self.tau_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
 
     def _update_sigma_squared(self, group_means):
         alpha = (self.total_people + self.P) / 2
-        beta_first_term = 0.5/self.tau_squared*((self.theta - group_means)**2).sum()
+        beta_first_term = 0.5 / self.tau_squared * ((self.theta - group_means) ** 2).sum()
         beta_second_term = ((self.theta[self.df['group'].values - 1] - self.df['values']) ** 2).sum()
         beta = 0.5 * (beta_first_term + beta_second_term)
         self.sigma_squared = 1 / gamma.rvs(a=alpha, scale=1 / beta, size=1)
@@ -122,16 +123,18 @@ class GibbsSampler(Initializer):
         for trace in keys:
             self.plot_other_histograms(trace)
 
+
 class GibbsSamplerBeta(GibbsSampler):
     def __init__(self, df, theta=None, mu=None, sigma_squared=None, tau_squared=None, n_iter=5000, burn=100, beta=None):
-        super().__init__(df=df, theta=theta, mu=mu, sigma_squared=sigma_squared, tau_squared=tau_squared, n_iter=n_iter, burn=burn)
+        super().__init__(df=df, theta=theta, mu=mu, sigma_squared=sigma_squared, tau_squared=tau_squared, n_iter=n_iter,
+                         burn=burn)
         self.beta = self._initialize_beta(beta)
         self.traces = {'sigma_squared': np.zeros(self.n_iter),
                        'tau_squared': np.zeros(self.n_iter),
                        'mu': np.zeros(self.n_iter),
                        'theta': np.zeros((self.n_iter, self.P)),
                        'beta': np.zeros(self.n_iter)}
-        self.group_controls = df.groupby('group')['treatment'].mean() - 1 # hacky -_-
+        self.treatment_per_group = self.df.groupby('group')['treatment'].unique().astype(float) - 1
 
     @staticmethod
     def _initialize_beta(beta):
@@ -143,7 +146,7 @@ class GibbsSamplerBeta(GibbsSampler):
         for it in tqdm(range(self.n_iter)):
             self._update_mu()
             self._update_beta()
-            group_means = self.mu + self.beta * self.group_controls
+            group_means = self.mu + self.beta * self.treatment_per_group
             self._update_sigma_squared(group_means)
             self._update_tau_squared(group_means)
             self._update_theta(group_means)
@@ -151,13 +154,14 @@ class GibbsSamplerBeta(GibbsSampler):
         self._remove_burn()
 
     def _update_mu(self):
-        mean = self.theta.mean() - self.beta * self.group_controls.mean()
+        mean = self.theta.mean() - self.beta * self.treatment_per_group.mean()
         var = self.sigma_squared * self.tau_squared / self.P
         self.mu = norm.rvs(loc=mean, scale=np.sqrt(var))
 
     def _update_beta(self):
-        mean = (np.mean(self.theta * self.group_controls) - self.mu * np.mean(self.group_controls))/np.mean(self.group_controls**2)
-        var = self.sigma_squared * self.tau_squared / (self.P * np.mean(self.group_controls**2))
+        mean = (np.mean(self.theta * self.treatment_per_group) - self.mu * np.mean(self.treatment_per_group)) / np.mean(
+            self.treatment_per_group ** 2)
+        var = self.sigma_squared * self.tau_squared / (self.P * np.mean(self.treatment_per_group ** 2))
         self.beta = norm.rvs(loc=mean, scale=np.sqrt(var))
 
     def _update_traces(self, it):
@@ -166,4 +170,3 @@ class GibbsSamplerBeta(GibbsSampler):
         self.traces['sigma_squared'][it] = self.sigma_squared
         self.traces['tau_squared'][it] = self.tau_squared
         self.traces['beta'][it] = self.beta
-
