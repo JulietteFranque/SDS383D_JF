@@ -15,7 +15,7 @@ class KernelSmoother:
 
     def _get_weights(self, dist):
         x_kernel = dist / self.bandwidth
-        kernel = 1 / self.bandwidth * 1 / (2 * np.pi) ** 0.5 * np.exp(-x_kernel ** 2 / 2)
+        kernel = 1 / self.bandwidth * 1 / (2 * np.pi) * np.exp(-x_kernel ** 2 / 2)
         weights = kernel / np.sum(kernel, axis=1)[:, np.newaxis]
         return weights
 
@@ -50,14 +50,24 @@ class KernelSmoother:
             mse.append(mean_squared_error(y_smoothed, y_test))
         return np.mean(mse)
 
+    def _objective_function_leave_one_out_trick(self, bandwidth, x, y):
+        self.bandwidth = bandwidth
+        dist = distance_matrix(x, x)
+        H_matrix = self._get_weights(dist)
+        y_hat = self._get_y_smoothed(x, y, x).flatten()
+        loocv = ((y.flatten()-y_hat).flatten()/(1-np.diag(H_matrix))).T@((y.flatten()-y_hat)/(1-np.diag(H_matrix)))
+        return loocv
+
     def fit(self, method='basic_validation'):
         """fit optimal bandwidth"""
         if method == 'leave_one_out':
             loo = LeaveOneOut()
             loo.get_n_splits(self.x)
-            self.bandwidth = minimize(lambda b: self._objective_function_leave_one_out(b, self.x, self.y, loo), x0=1).x
+            self.bandwidth = minimize(lambda b: self._objective_function_leave_one_out_trick(b, self.x, self.y), x0=1, bounds=[(0.05, None)]).x
+
+
 
         elif method == 'basic_validation':
-            x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=0.33, random_state=42)
+            x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=0.25)
             self.bandwidth = minimize(
-                lambda b: self._objective_function_basic_validation(b, x_train, x_test, y_train, y_test), 1).x
+                lambda b: self._objective_function_basic_validation(b, x_train, x_test, y_train, y_test), x0=1, bounds=[(0.05, None)]).x
