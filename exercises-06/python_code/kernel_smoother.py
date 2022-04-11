@@ -2,7 +2,6 @@ import numpy as np
 from scipy.spatial import distance_matrix
 from sklearn.metrics import mean_squared_error
 from scipy.optimize import minimize
-from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import train_test_split
 
 
@@ -40,34 +39,23 @@ class KernelSmoother:
         y_smoothed = self._get_y_smoothed(x_train, y_train, x_test)
         return mean_squared_error(y_smoothed, y_test)
 
-    def _objective_function_leave_one_out(self, bandwidth, x, y, loo):
-        self.bandwidth = bandwidth
-        mse = []
-        for train_index, test_index in loo.split(x):
-            x_train, x_test = x[train_index], x[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-            y_smoothed = self._get_y_smoothed(x_train, y_train, x_test)
-            mse.append(mean_squared_error(y_smoothed, y_test))
-        return np.mean(mse)
-
     def _objective_function_leave_one_out_trick(self, bandwidth, x, y):
         self.bandwidth = bandwidth
         dist = distance_matrix(x, x)
         H_matrix = self._get_weights(dist)
         y_hat = self._get_y_smoothed(x, y, x).flatten()
-        loocv = ((y.flatten()-y_hat).flatten()/(1-np.diag(H_matrix))).T@((y.flatten()-y_hat)/(1-np.diag(H_matrix)))
+        loocv = ((y.flatten() - y_hat).flatten() / (1 - np.diag(H_matrix))).T @ (
+                    (y.flatten() - y_hat) / (1 - np.diag(H_matrix)))
         return loocv
 
     def fit(self, method='basic_validation'):
         """fit optimal bandwidth"""
         if method == 'leave_one_out':
-            loo = LeaveOneOut()
-            loo.get_n_splits(self.x)
-            self.bandwidth = minimize(lambda b: self._objective_function_leave_one_out_trick(b, self.x, self.y), x0=1, bounds=[(0.05, None)]).x
-
-
+            self.bandwidth = minimize(lambda b: self._objective_function_leave_one_out_trick(b, self.x, self.y), x0=1,
+                                      bounds=[(0.05, None)]).x
 
         elif method == 'basic_validation':
             x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=0.25)
             self.bandwidth = minimize(
-                lambda b: self._objective_function_basic_validation(b, x_train, x_test, y_train, y_test), x0=1, bounds=[(0.05, None)]).x
+                lambda b: self._objective_function_basic_validation(b, x_train, x_test, y_train, y_test), x0=1,
+                bounds=[(0.05, None)]).x
