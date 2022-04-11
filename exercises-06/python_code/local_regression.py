@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.spatial import distance_matrix
 from scipy.optimize import minimize
+from scipy.stats import norm
+import warnings
 
 
 class Lowess:
@@ -18,7 +20,7 @@ class Lowess:
 
     def _calculate_weights(self, dist):
         x_kernel = dist / self.bandwidth
-        kernel = 1 / self.bandwidth * 1 / (2 * np.pi) * np.exp(-x_kernel ** 2 / 2)
+        kernel = 1 / self.bandwidth * 1 / np.sqrt(2 * np.pi) * np.exp(-x_kernel ** 2 / 2)
         weights = kernel / np.sum(kernel, axis=1)[:, np.newaxis]
         return weights
 
@@ -33,21 +35,20 @@ class Lowess:
         R_transpose = np.transpose(R, axes=[0, 2, 1])
         H = np.linalg.solve(R_transpose * weights[:, None, :] @ R, R_transpose * weights[:, None, :])
         H_at_target = H[:, 0, :]
-        #H_at_target_normalized = H_at_target / np.sum(H_at_target, axis=1)[:, np.newaxis]
-        # for each target point, the estimated point is the first element only
         return H_at_target
 
-    def predict(self, x_predict):
+    def predict(self, x_predict, **kwargs):
         H = self._calculate_smoothing_matrix(x_predict)
         y_pred = (H @ self.y_data)
-        return y_pred
+        lower, upper = self.calculate_CI(y_pred, H, **kwargs)
+        return y_pred, lower, upper
 
     def _objective_function_leave_one_out(self, bandwidth):
         self.bandwidth = bandwidth
         H_matrix = self._calculate_smoothing_matrix(self.x_data)
-        y_hat = self.predict(self.x_data).flatten()
-        loocv = ((self.y_data.flatten() - y_hat).flatten() / (1 - np.diag(H_matrix))).T @ (
-                (self.y_data.flatten() - y_hat) / (1 - np.diag(H_matrix)))
+        y_hat, _, _ = self.predict(self.x_data)
+        loocv = ((self.y_data.flatten() - y_hat.flatten()).flatten() / (1 - np.diag(H_matrix))).T @ (
+                (self.y_data.flatten() - y_hat.flatten()) / (1 - np.diag(H_matrix)))
         return loocv
 
     def fit(self, x_data, y_data):
@@ -55,3 +56,16 @@ class Lowess:
         self.y_data = y_data
         self.bandwidth = minimize(self._objective_function_leave_one_out, x0=np.array([1]),
                                   bounds=[(0.05, None)]).x
+
+    def calculate_CI(self, y_pred, H, sig_level=.05):
+        if y_pred.shape[0] != self.y_data.shape[0]:
+            warnings.warn('can"t calculate CI if y and y_pred are not the same length')
+            return None, None
+        else:
+            residuals = self.y_data - y_pred
+            RSS = (np.sum(residuals ** 2))
+            sigma_squared = RSS / (len(self.x_data) + 2 * np.matrix.trace(H) + np.matrix.trace(np.transpose(H) @ H))
+            z = norm(0, 1).ppf(1 - sig_level / 2)
+            lower = y_pred - z * np.sqrt(sigma_squared)
+            upper = y_pred + z * np.sqrt(sigma_squared)
+            return lower, upper
