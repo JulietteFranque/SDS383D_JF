@@ -40,7 +40,8 @@ class Lowess:
     def predict(self, x_predict, **kwargs):
         H = self._calculate_smoothing_matrix(x_predict)
         y_pred = (H @ self.y_data)
-        lower, upper = self.calculate_CI(y_pred, H, **kwargs)
+        sigma_squared = self._calculate_sigma_squared(y_pred, H)
+        lower, upper = self.calculate_CI(y_pred, H, sigma_squared, **kwargs)
         return y_pred, lower, upper
 
     def _objective_function_leave_one_out(self, bandwidth):
@@ -57,15 +58,19 @@ class Lowess:
         self.bandwidth = minimize(self._objective_function_leave_one_out, x0=np.array([1]),
                                   bounds=[(0.05, None)]).x
 
-    def calculate_CI(self, y_pred, H, sig_level=.05):
+    def _calculate_sigma_squared(self, y_pred, H):
+        residuals = self.y_data - y_pred
+        RSS = (np.sum(residuals ** 2))
+        sigma_squared = RSS / (len(self.x_data) + 2 * np.matrix.trace(H) + np.matrix.trace(np.transpose(H) @ H))
+        return sigma_squared
+
+    def calculate_CI(self, y_pred, H, sigma_squared, sig_level=.05):
         if y_pred.shape[0] != self.y_data.shape[0]:
             warnings.warn('can"t calculate CI if y and y_pred are not the same length')
             return None, None
         else:
-            residuals = self.y_data - y_pred
-            RSS = (np.sum(residuals ** 2))
-            sigma_squared = RSS / (len(self.x_data) + 2 * np.matrix.trace(H) + np.matrix.trace(np.transpose(H) @ H))
+            var = sigma_squared * np.sum(H**2, axis=1)
             z = norm(0, 1).ppf(1 - sig_level / 2)
-            lower = y_pred - z * np.sqrt(sigma_squared)
-            upper = y_pred + z * np.sqrt(sigma_squared)
+            lower = y_pred.flatten() - z * np.sqrt(var)
+            upper = y_pred.flatten() + z * np.sqrt(var)
             return lower, upper
