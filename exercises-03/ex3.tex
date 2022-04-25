@@ -6,15 +6,13 @@
 
 
 \usepackage{amsmath}
-\addtolength{\hoffset}{-2.25cm}
-\addtolength{\textwidth}{4.5cm}
-\addtolength{\voffset}{-2.5cm} 
-\addtolength{\textheight}{5cm}
 \setlength{\parskip}{0pt}
 \setlength{\parindent}{15pt}
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
 \usepackage[colorlinks = true, linkcolor = black, citecolor = black, final]{hyperref}
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -176,4 +174,118 @@ True
 
 \bigskip
 True
+
+\bigskip
+\bigskip
+
+{\bf \large The conjugate gaussian linear model} 
+\bigskip
+
+\textbf{Part A}\\
+
+
+Derive the conditional posterior $P(\beta|y, \omega)$, given that
+
+$$
+(\beta, \sigma^2) \sim N(X\beta, (\omega \Lambda)^{-1} ) \, ,
+$$
+
+\begin{align*}
+(\beta \mid \omega) &\sim N(m, (\omega K)^{-1}) \\
+\omega &\sim \mbox{Gamma}(d/2, \eta/2) \, .
+\end{align*}
+We have
+
+\begin{align*}
+    P(\beta|y, \omega) &\propto P(y|\beta, \omega)P(\beta, \omega)\\
+    & \propto  P(y|\beta, \omega)P(\beta| \omega)P(\omega)\\
+    & \propto  P(y|\beta, \omega)P(\beta| \omega)\\
+    & \propto det(\omega \Lambda ) \exp[-\frac{1}{2}(y-X\beta)^T(\omega \Lambda)(y-X\beta)]  det(\omega K ) \exp[-\frac{1}{2}(\beta-m)^T(\omega K)(\beta-m)] \\
+    &    \propto \exp[-\frac{\omega}{2}(y-X\beta)^T( \Lambda)(y-X\beta)+(\beta-m)^T(K)(\beta-m)] 
+\end{align*}
+
+
+Expand
+\begin{align*}
+   &    \propto \exp[-\frac{\omega}{2}(y^T\Lambda y -2(X\beta)^T\Lambda y + (X\beta)^T\Lambda(X\beta) + \beta^TK \beta -2m^TK\beta + m^TK m )] \\
+   &    \propto  \exp[-\frac{\omega}{2}( -2(X\beta)^T\Lambda y + (X\beta)^T\Lambda(X\beta) + \beta^TK \beta -2m^TK\beta )] \\
+   &    \propto  \exp[-\frac{\omega}{2}( -2\beta^T(X^T\Lambda y + Km)+\beta^T(X^T\Lambda X+k)\beta)] \\
+   &    \propto  \exp[-\frac{\omega}{2}(\beta-m^*)^T(X^T\Lambda X+k)(\beta-m^*) ] \\
+\end{align*}
+
+where $m^*=(X^T\Lambda X +K)^{-1}(X^T\Lambda y +Km)$. Let $K^*=(X^T\Lambda X+K)$. This is a $N(m^*, [\omega K^*]^{-1} )$
+
+\bigskip
+\bigskip
+
+\textbf{Part B}\\
+
+
+Find $P(\omega|y)$. 
+
+\begin{align*}
+    P(\omega|y) &= \int_{-\infty}^{\infty}  P(\omega, \beta|y)d\beta \\
+    &= \int_{-\infty}^{\infty}  P(y, \omega|\beta)P(\beta)d\beta \\
+     & =\int_{-\infty}^{\infty} P(y|\beta, \omega)P(\beta, \omega)d\beta \\
+     & = \int_{-\infty}^{\infty} P(y|\beta, \omega)P(\beta| \omega)P(\omega)d\beta \\
+     & \propto \int_{-\infty}^{\infty}  det([\omega \Lambda]^{1/2} )\exp[-\frac{\omega}{2}(y-X\beta)^T(\Lambda)(y-X \beta) ] det([\omega K]^{1/2} )\exp[-\frac{\omega}{2}(\beta-m)^T(\Lambda)(\beta-m) ]\\ &\exp{(-\eta\omega/2)} \omega^{d/2-1}d\beta
+\end{align*}\\
+
+Using $det(cA_{n\timesn})=c^nA$\\
+
+\begin{align*}
+  &\propto \int_{-\infty}^{\infty} \omega^{n/2}\exp[-\frac{\omega}{2}(y-X\beta)^T(\Lambda)(y-X \beta) ] \omega^{p/2}\exp[-\frac{\omega}{2}(\beta-m)^T(\Lambda)(\beta-m) ]\\ &\exp{-\eta\omega/2} \omega^{d/2-1}d\beta \\
+  & \propto \int_{-\infty}^{\infty} \omega^{p+d+n/2-1}  \exp{(-\omega/2[ (\beta-m^*)^TK^*(\beta-m^*)+m^TKm-m^*K^*m^*+y^T\Lambda + \eta)]}d\beta\\
+   & \propto \int_{-\infty}^{\infty} \omega^{p+d+n/2-1} \exp(-[\omega/2]\eta^*) \exp{(-\omega/2
+   (\beta-m^*)^TK^*(\beta-m^*)}d\beta \\
+     & \propto \omega^{p+d+n/2-1} \exp(-[\omega/2]\eta^*)  \int_{-\infty}^{\infty} \exp{(-\omega/2
+   (\beta-m^*)^TK^*(\beta-m^*)}d\beta
+\end{align*}\\
+
+Where $\eta^* = m^TKm-m^*K^*m^*+y^T\Lambda + \eta$
+Looks like kernel of MVN
+
+\begin{align*}
+& \propto \omega^{p+d+n/2-1} \omega{-p/2} \exp(-[\omega/2]\eta^*)  \int_{-\infty}^{\infty} \omega^{p/2} \exp{(-\omega/2
+   (\beta-m^*)^TK^*(\beta-m^*)]}d\beta\\
+   & \propto  \omega^{d+n/2-1}  \exp(-[\omega/2]\eta^*) 
+\end{align*}\\
+
+This is a gamma distribution $Ga(d^*/2, \eta^*/2)$, where $d^*=(n+d)/2$
+
+\bigskip
+\bigskip
+
+\textbf{Part C}\\
+
+Find $P(\beta|y)$
+
+\begin{align*}
+    P(\beta|y) &= \int_{-\infty}^{\infty}P(\beta, \omega|y)d\omega \\
+    & \propto \int_{-\infty}^{\infty} P(\beta|\omega, y)P(\omega, y) d\omega\\
+    & \propto \int_{-\infty}^{\infty} \omega^{p/2}\exp{(-\omega/2[
+   (\beta-m^*)^TK^*(\beta-m^*) + \eta^*]}  \omega^{d^*/2-1}    d\omega\\
+\end{align*}
+
+This is the kernel of $Ga([p+d^*]/2,   [(\beta-m^*)^TK^*(\beta-m^*) + \eta^*]/2)$
+
+\begin{align*}
+    & \propto [(\beta-m^*)^TK^*(\beta-m^*) + \eta^*]/2]^{-(p+d^*/2)} \Gamma([p+d^*]/2)\\
+    & \propto [(\beta-m^*)^TK^*(\beta-m^*) + \eta^*]/2]^{-(p+d^*/2)}\\
+    & \propto [(\beta-m^*)^TK^*(\beta-m^*)/\eta^* + 1]/2]^{-(p+d^*/2)}\\
+     & \propto [(1/d^*)(\beta-m^*)^TK^*(\beta-m^*)/\eta^*/d^* + 1]/2]^{-(p+d^*/2)}
+\end{align*}\\
+
+This is a multivariate student t with mean $m^*$, shape $ K^*^{-1}\eta^*/d^*$, dof $d^*$.
+
+
+\bigskip
+\bigskip
+
+{\bf \large Heavy-tailed error model} 
+\bigskip
+
+See handwritten notes
 \end{document}
+
+
