@@ -75,7 +75,7 @@ The COVID-19 pandemic resulted in stay-at-home orders across the world. As a res
 The raw datasets were formatted to obtain weekly averages for number of incident percentage change from baseline for 2020 for each fire department in NFORS and 2020 weekly average Google mobility data corresponding to the county of each NFORS department.\\
 
 
-The Google data columns of interest were date,  FIPS code (which corresponds to unique county) and percentage change from baseline for workplace, retail, parks, and grocery/pharmacy mobility. First, the Google mobility data were grouped by FIPS codes.  The data with FIPS codes corresponding to those of the counties of the fire departments in the NFORS data were kept.\\
+The Google data columns of interest were date,  FIPS code (which corresponds to unique county) and percentage change from baseline for workplace, residential, retail, parks, and grocery/pharmacy mobility. First, the Google mobility data were grouped by FIPS codes.  The data with FIPS codes corresponding to those of the counties of the fire departments in the NFORS data were kept.\\
 
 
 
@@ -90,15 +90,29 @@ An incident baseline was calculated from the 2019 NFORS data and applied to the 
 
 
 \section{Data Exploration}
-As expected, the various mobility types were highly correlated. Figure \ref{corr_mat} shows the correlation matrix for the mobility types.
+The various mobility types were highly correlated. Figure \ref{corr_mat} shows the correlation matrix for the mobility types for all departments. The correlations are as expected; for example workplace mobility is inversely correlated with residential mobility. Parks, however, is not highly correlated with the other mobility types.
 
 
-\begin{figure}[h]
-\caption{Example of a parametric plot ($\sin (x), \cos(x), x$)}
+\begin{figure}[h]\label{corr_mat}
 \centering
-\includegraphics[width=0.5\textwidth]{corr.png}
+\includegraphics[width=.7\textwidth]{corr.png}
+\caption{Correlation Matrix}
 \end{figure}
 
+To avoid multicolinearity issues in the model, principal component analysis was performed and the first two components were kept. The components were calculated by first subtracting the mean of each mobility type from the corresponding mobility values. Then, the covariance matrix for the centered data was calculated. Then, the eigenvalues (or the explained variance corresponding to each component) and the eigenvectors (components) of the covariance matrix were calculated. The two components corresponding to the two highest eigenvalues were kept. The first two components explained 99\% of the variance. The first component  pointed in the direction of ``parks'' and the second pointed in the direction of ``retail/recreation'', ``grocery/pharmacy'', ``workplaces'' and away from ``residential''. The first component can easily be interpreted as park mobility, and the second as increasing ``city'' mobility and decreasing residential mobility. The original data were transformed using the chosen components.\\
+
+The next step was to determine whether the incident data could be approximated as being normally distribution, where:
+\begin{align*}
+    y_i \sim N(X_i \beta_i, \sigma_i^2I)
+\end{align*}
+Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix. 
+    
+    
+\begin{figure}[h]\label{corr_mat}
+\centering
+\includegraphics[width=.7\textwidth]{corr.png}
+\caption{Correlation Matrix}
+\end{figure}
 
 
 \section{Model}
