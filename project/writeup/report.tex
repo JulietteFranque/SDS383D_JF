@@ -105,13 +105,15 @@ The next step was to determine whether the incident data could be approximated a
 \begin{align*}
     y_i \sim N(X_i \beta_i, \sigma_i^2I)
 \end{align*}
-Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix. 
+Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix.  A simple linear regression model was fit to the data for each department. As shown in Figure \ref{normal}, the Q-Q plots showed  that the residuals were approximately normally distributed; therefore no further transformations of the data were necessary.\\
+
+Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix was diagonal would not have been appropriate.
     
     
-\begin{figure}[h]\label{corr_mat}
+\begin{figure}[h]\label{normal}
 \centering
-\includegraphics[width=.6\textwidth]{normal_approx_1.png}
-\caption{Plots showing residuals with fitted normal with same moments (left), Q-Q plot (middle), residuals against time (right). Only the first 9 departments are shown.}
+\includegraphics[width=.55\textwidth]{normal_approx_1.png}
+\caption{Plots showing residuals with fitted normal with same moments as the residuals (left), Q-Q plot (middle), residuals against time (right). Only the first 9 departments are shown.}
 \end{figure}
 
 
