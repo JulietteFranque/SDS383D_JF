@@ -1,19 +1,16 @@
 \documentclass[paper=a4, fontsize=11pt]{scrartcl}
 \usepackage[T1]{fontenc}
 \usepackage{fourier}
-\usepackage[numbers]{natbib}
 \usepackage[english]{babel}	
 % English language/hyphenation
 \usepackage[protrusion=true,expansion=true]{microtype}	
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 \usepackage[pdftex]{graphicx}	
 \usepackage{url}
-\usepackage[
-backend=biber,
-style=numeric,
-sorting=ynt
-]{biblatex}
-\addbibresource{refs.bib}
+
+
+\usepackage[bottom=1.5in, top=1.5in]{geometry}
+
 \usepackage{enumitem}
 
 \newlength\tindent
@@ -23,25 +20,7 @@ sorting=ynt
 
 %%% Custom sectioning
 \usepackage{sectsty}
-\allsectionsfont{\centering \normalfont\scshape}
-
-
-%%% Custom headers/footers (fancyhdr package)
-\usepackage{fancyhdr}
-\pagestyle{fancyplain}
-\fancyhead{}											% No page header
-\fancyfoot[L]{}											% Empty 
-\fancyfoot[C]{}											% Empty
-\fancyfoot[R]{\thepage}									% Pagenumbering
-\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
-\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
-\setlength{\headheight}{13.6pt}
-
-
-%%% Equation and float numbering
-\numberwithin{equation}{section}		% Equationnumbering: section.eq#
-\numberwithin{figure}{section}			% Figurenumbering: section.fig#
-\numberwithin{table}{section}				% Tablenumbering: section.tab#
+%\allsectionsfont{\centering \normalfont\scshape}
 
 
 %%% Maketitle metadata
@@ -107,7 +86,7 @@ The next step was to determine whether the incident data could be approximated a
 \end{align*}
 Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix.  A simple linear regression model was fit to the data for each department. As shown in Figure \ref{normal}, the Q-Q plots showed  that the residuals were approximately normally distributed; therefore no further transformations of the data were necessary.\\
 
-Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix was diagonal would not have been appropriate.
+Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix was diagonal would not have been appropriate. Figure \ref{autocorr} shows ACF plots for all departments. Some departments (for example, departments 12, 13, 25, 29) have multiple correlation coefficients outside the 95 \% confidence internal. For some departments, auto-correlation is not an issue.
     
     
 \begin{figure}[h]\label{normal}
@@ -117,19 +96,118 @@ Another concern was that the residuals (as plotted in Figure \ref{normal} - alth
 \end{figure}
 
 
-\begin{figure}[h]\label{corr_mat}
+\begin{figure}[h]\label{autocorr}
 \centering
-\includegraphics[width=1\textwidth]{acf_plots.png}
+\includegraphics[width=1\textwidth]{acf_plots1.png}
 \caption{ACF plots for all departments.}
 \end{figure}
 
 \section{Model}
+Given the auto-correlation in the residuals for some departments, a joint hierarchical and Gaussian process model was used. The model was structured as follows:
+
+\begin{align*}
+    &y_i = f_i (t_i) + \epsilon_i \\
+     &\epsilon_i \sim N(0, \sigma^2_i I)\\
+     &f_i (t_i) \sim GP(X_i \beta_i, C_i)\\
+     & \beta_i \sim N(\mu, \Sigma)
+\end{align*}
+
+Where $i$ is the department number, $t_i$ is the time vector for each department, $X_i$ is the design matrix for each department, $C_i$ is the GP covariance matrix which is a function of $t_i$, the bandwidth $b_i$, and $\tau^2_i$. The following priors were used:
+
+\begin{align*}
+    & \sigma^2_i \propto \frac{1}{\sigma^2_i}\\
+    & \mu \propto c \\
+    & \Sigma_{jj} \sim IG \left(\frac{1}{2}, \frac{1}{2} \right)\\
+    & b_i \sim U(1, 100)\\
+    & \tau^2 \sim U(1, 10000)
+\end{align*}
+
+
+The conditionals needed for Gibbs sampling were
+
+\begin{align*}
+     P(\mu | \beta_i, \Sigma ) &\propto  \prod_{i=1}^{N} P(\beta_i | \mu, \Sigma)P(\mu) \\
+     & \propto \prod_{i=1}^{N} \mbox{exp}\left \{-\frac{1}{2}(\beta_i - \mu)^T\Sigma^{-1}(\beta_i - \mu) \right \} \\
+     & \propto \mbox{exp}\left \{-\frac{1}{2} \sum_{i=1}^{N} (\beta_i - \mu)^T\Sigma^{-1}(\beta_i - \mu) \right \}\\
+     & \propto \mbox{exp}\left \{-\frac{1}{2} \sum_{i=1}^{N} \mu^T \Sigma^{-1}  \mu - 2\mu^T\Sigma^{-1} \beta_i \right \}\\
+     & \propto \mbox{exp}\left \{-\frac{1}{2}\left(N \mu^T \Sigma^{-1}  \mu - 2\mu^T\Sigma^{-1} \sum_{i=1}^{N}\beta_i\right) \right \}\\
+     &\sim N_p (\mu^*, \Sigma^*)
+\end{align*}
+
+
+Where $\mu^* = \sum_{i=1}^{N}\beta_i/N $, $\Sigma^* = \Sigma/N$ and $N$ is the number of departments.
+
+
+\begin{align*}
+     P(\Sigma_{jj} |\beta_{ij}, \mu_j ) & \propto  \prod_{i=1}^{N} P(\beta_{ij} | \mu_{j}, \Sigma_{jj})P(\Sigma_{jj}) \\
+     & \propto \prod_{i=1}^{N} \frac{1}{\Sigma_{jj}^{1/2}} \mbox{exp} \left \{ -\frac{1}{2\Sigma_{jj} }(\beta_{ij} - \mu_j)^2 \right \} \Sigma_{jj}^{-1-\frac{1}{2}}\mbox{exp}\left \{-\frac{1}{2\Sigma_{jj}} \right \} \\
+     & \propto  \Sigma_{jj}^{-\frac{N+1}{2}-1} \mbox{exp} \left \{  -\frac{1}{2\Sigma_{jj}  }\left[\sum_{i=1}^{N}(\beta_{ij} - \mu_j)^2 + 1 \right] \right \}\\
+     & \sim IG \left(\frac{N+1}{2}, \frac{1}{2} \left[\sum_{i=1}^{N}(\beta_{ij} - \mu_j)^2 + 1 \right] \right)
+\end{align*}
+
+
+\begin{align*}
+     P(\sigma^2_i |y_i, f_i ) & \propto P(y_i| \sigma^2_i, f_i)P(\sigma^2_i)\\
+     & \propto \frac{1}{(\sigma^2_i)^{n_i/2}} \mbox{exp}\left \{ -\frac{1}{2}(y_i-f_i)^T \sigma^{-2}_i(y_i-f_i)      \right \} \frac{1}{\sigma^2_i}\\
+      & \propto (\sigma^2_i)^{-\frac{n_i}{2}-1} \mbox{exp}\left \{ -\frac{\sigma^{-2}_i}{2}(y_i-f_i)^T (y_i-f_i)\right \} \\
+      &  \sim IG\left(\frac{n_i}{2}, \frac{1}{2}(y_i-f_i)^T (y_i-f_i)\right)
+\end{align*}
+
+Where $n_i$ is the number of observations in each department.
+
+\begin{align*}
+     P(\beta_i | f_i, C_i, \Sigma, \mu ) & \propto P(f_i| \beta_i, C_i)P(\beta_i| \Sigma, \mu) \\
+     & \propto\mbox{exp}\left \{ -\frac{1}{2}(f_i-X_i\beta_i)^T C^{-1}_i(f_i-X_i\beta_i)      \right \} \mbox{exp}\left \{ -\frac{1}{2}(\beta_i-\mu)^T \Sigma^{-1}(\beta_i-\mu)      \right \} \\
+     & \propto \mbox{exp}\left \{ -\frac{1}{2}\left(-2\beta_i^T[X_i^TC_i^{-1}f_i + \Sigma^{-1}\mu] + \beta_i^T[X^T_iC_i^{-1}X_i + 
+     \Sigma^{-1}]\beta_i \right)      \right \}\\
+    &\sim N_p (\mu^*, \Sigma^*)
+\end{align*}
+
+
+Where  $\Sigma^*=[X^T_iC_i^{-1}X_i + 
+     \Sigma^{-1}]^{-1} $ $\mu^*=\Sigma^*[X_i^TC_i^{-1}f_i + \Sigma^{-1}\mu]$.
+
+
+
+\begin{align*}
+     P(f_i |y_i, \sigma_i^2, C_i, \beta_i) & \propto P(y_i| f_i, \sigma_i^2)P(f_i|C_i, \beta_i) \\
+      & \propto  \mbox{exp}\left \{ -\frac{1}{2}(y_i-f_i)^T \sigma^{-2}_i(y_i-f_i)      \right \} \mbox{exp}\left \{ -\frac{1}{2}(f_i-X_i\beta_i)^T C_i^{-1}(f_i-X_i\beta_i)      \right \} \\
+       & \propto  \mbox{exp}\left \{ -\frac{1}{2}(-2f_i^T[\sigma_i^{-2}y_i + C_i^{-1}X_i\beta_i]+f_i^T[\sigma_i^{-2}I + C_i^{-1}]f_i) \right \}\\
+        &\sim N_{n_i} (\mu^*, \Sigma^*)
+\end{align*}
+
+
+Where  $\Sigma^*=[\sigma_i^{-2}I + C_i^{-1}]^{-1} $ $\mu^*=\Sigma^*[\sigma_i^{-2}y_i + C_i^{-1}X_i\beta_i]$.
+
+
+and
+
+\begin{align*}
+     & P(b_i |\tau_i^2, \beta_i)  \propto P(f_i|b_i, \tau_i^2, \beta_i)P(b_i) \\
+     & P(\tau_i^2 |b_i, \beta_i)  \propto P(f_i|b_i, \tau_i^2, \beta_i)P(\tau_i^2) \\
+\end{align*}
+
+The two full conditionals above do not simplify to known distributions. Random walk Metropolis-Hastings was used to update $b_i$ and $\tau_i^2$. The algorithm for updating $b_i$ is shown below. The same process was used to update $\tau_i^2$.
+\begin{itemize}
+    \item Draw \mbox{log} $b_{i, t+1}$ from $N( \mbox{log}b_{i, t}, \sigma' )$. Using the logarithm ensures that the bandwidth is always positive.
+    \item Transform the drawn value: $b_{i, t+1} = \mbox{exp} (\mbox{log} b_{i, t+1})$
+    \item Calculate $\frac{P(b_{i, t+1} |\tau_{i, t+1}^2, \beta_{i, t+1})}{P(b_{i, t} |\tau_{i, t}^2, \beta_{i, t})}$ by calculating the likelihood and prior probabilities for $b_{i, t+1}$ and $b_{i, t}$.
+    \item Draw a value from $U(0,1)$. If the ratio above is larger than the drawn value, accept $b_{i, t+1}$. Otherwise, keep $b_{i, t}$.
+\end{itemize}
+
+
+After some trial and error, $\sigma'$ was set to 0.1 for both $b$ and $\tau_^2$.
+
+
 \section{Results}
 
 
 
 
 
-\printbibliography
+
+
+\bibliography{refs} 
+\bibliographystyle{ieeetr}
 
 \end{document}
