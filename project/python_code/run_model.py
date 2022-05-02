@@ -7,7 +7,7 @@ import pickle
 import sys
 
 def run_chain(chain_number):
-    gb = new_gibbs.GibbsSampler(X_department, y_department, time_vectors, n_iter=10, burn=0, bandwidth_start=5, tau_sq_1_start=100000, f_start=5)
+    gb = new_gibbs.GibbsSampler(X_department, y_department, time_vectors, n_iter=100000, burn=0, bandwidth_start=5, tau_sq_1_start=1000, f_start=5)
     gb.fit()
     with open(f'traces{chain_number}.pickle', 'wb') as handle:
         pickle.dump(gb.traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
