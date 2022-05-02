@@ -78,7 +78,7 @@ class GibbsSampler:
                 dept] * self.y[dept])
             self.f[dept] = multivariate_normal(mean=m, cov=cov, allow_singular=True).rvs()
 
-    def _update_tau_sq_1s_and_corr_mat(self, it):
+    def _update_tau_sq_1s_and_corr_mat(self):
         for dept in range(self.n_dept):
             new_log_tau_sq1 = norm(loc=np.log(self.tau_sq_1s[dept]), scale=.1).rvs()
             new_tau_sq_1 = np.exp(new_log_tau_sq1)
@@ -98,7 +98,7 @@ class GibbsSampler:
                 self.gp_mats[dept] = new_cov
                 self.accept_tau[dept] = True
 
-    def _update_bandwidths(self, it):
+    def _update_bandwidths(self):
         for dept in range(self.n_dept):
             new_log_bandwidth = norm(loc=np.log(self.bandwidths[dept]), scale=.1).rvs()
             new_bandwidth = np.exp(new_log_bandwidth)
@@ -151,8 +151,8 @@ class GibbsSampler:
     def fit(self):
         for it in tqdm(range(self.n_iter)):
             try:
-                self._update_bandwidths(it)
-                self._update_tau_sq_1s_and_corr_mat(it)
+                self._update_bandwidths()
+                self._update_tau_sq_1s_and_corr_mat()
                 self._update_f()
                 self._update_cov_mats()
                 self._update_taus()

@@ -4,8 +4,16 @@ from tqdm import tqdm
 import new_gibbs
 from sklearn.decomposition import PCA
 import pickle
+import sys
+
+def run_chain(chain_number):
+    gb = new_gibbs.GibbsSampler(X_department, y_department, time_vectors, n_iter=10, burn=0, bandwidth_start=5, tau_sq_1_start=100000, f_start=5)
+    gb.fit()
+    with open(f'traces{chain_number}.pickle', 'wb') as handle:
+        pickle.dump(gb.traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
+    chain = sys.argv[1]
     pca = PCA(n_components=2)
     df = pd.read_csv('../notebooks/all_data.csv')
     df = df.drop(columns='transit_stations_percent_change_from_baseline')
@@ -28,10 +36,7 @@ if __name__ == "__main__":
         df_dept['day_of_the_year'] = pd.to_datetime(df_dept['date']).dt.day_of_year
         time_vectors.append(df_dept['day_of_the_year'].to_numpy())
 
-    b = [5, 7, 8, 9]
-    tau = [1000, 1500, 2000, 3000]
-    for i in range(len(b)):
-        gb = new_gibbs.GibbsSampler(X_department, y_department, time_vectors, n_iter=200000, burn=0, bandwidth_start=b[i], tau_sq_1_start=tau[i], f_start=5)
-        gb.fit()
-        with open(f'traces{i}.pickle', 'wb') as handle:
-            pickle.dump(gb.traces, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    run_chain(chain)
+
+
+
