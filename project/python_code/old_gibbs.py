@@ -67,16 +67,16 @@ km
     def _update_taus(self):
         alpha = (self.n_dept + 1) / 2
         beta = 0.5 * (np.sum((self.betas - self.mu[:, None]) ** 2, axis=1) + 1)
-        self.taus = 1 / gamma(a=alpha, scale=1 / beta).rvs()
+        self.sigmas_diag = 1 / gamma(a=alpha, scale=1 / beta).rvs()
 
     def _update_tau_sq_1s_and_corr_mat(self):
         for dept in range(self.n_dept):
             new_tau_sq = norm(self.tau_sq_1s[dept], 1).rvs()
-            new_cov = self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
+            new_cov = self._calculate_exp_covariance_function(x_1=self.time_vectors[dept], x_2=self.time_vectors[dept],
                                                               bandwidth=self.bandwidths[dept],
                                                               tau_sq_1=new_tau_sq) + self.uncorr_mats[dept]
             new_posterior = self._calculate_tau_sq_1_posterior(dept, new_tau_sq, new_cov)
-            log_ratio = self._calculate_log_metropolis_hastings_ratio(new_posterior, self.tau_sq_posteriors[dept])
+            log_ratio = self._calculate_metropolis_hastings_ratio(new_posterior, self.tau_sq_posteriors[dept])
             accept = self._accept_or_reject(log_ratio)
             if accept:
                 self.tau_sq_1s[dept] = new_tau_sq
@@ -86,11 +86,11 @@ km
     def _update_bandwidths(self):
         for dept in range(self.n_dept):
             new_bandwidth = norm(self.bandwidths[dept], 1).rvs()
-            new_cov = self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
+            new_cov = self._calculate_exp_covariance_function(x_1=self.time_vectors[dept], x_2=self.time_vectors[dept],
                                                               bandwidth=new_bandwidth,
                                                               tau_sq_1=self.tau_sq_1s[dept]) + self.uncorr_mats[dept]
             new_posterior = self._calculate_bandwidth_posterior(dept, new_bandwidth, new_cov)
-            log_ratio = self._calculate_log_metropolis_hastings_ratio(new_posterior, self.bandwidths_posteriors[dept])
+            log_ratio = self._calculate_metropolis_hastings_ratio(new_posterior, self.bandwidths_posteriors[dept])
             accept = self._accept_or_reject(log_ratio)
             if accept:
                 self.bandwidths[dept] = new_bandwidth
@@ -140,7 +140,7 @@ km
 
     def _update_betas(self):
         for dept_idx in range(self.n_dept):
-            tau_mat_inv = np.linalg.inv(np.diag(self.taus))
+            tau_mat_inv = np.linalg.inv(np.diag(self.sigmas_diag))
             cov_mat_inv = np.linalg.inv(self.cov_mats[dept_idx])
             cov = np.linalg.inv(self.X[dept_idx].T @ cov_mat_inv @ self.X[dept_idx] + tau_mat_inv)
             mean = cov @ (self.X[dept_idx].T @ cov_mat_inv @ self.y[dept_idx] + tau_mat_inv @ self.mu)
@@ -171,7 +171,7 @@ km
         self.traces['betas'][it, :, :] = self.betas
         self.traces['mu'][it, :] = self.mu
         self.traces['sigmas_squared'][it, :] = self.sigmas_squared
-        self.traces['taus'][it, :] = self.taus
+        self.traces['taus'][it, :] = self.sigmas_diag
         self.traces['bandwidths'][it, :] = self.bandwidths
         self.traces['tau_sq_1s'][it, :] = self.tau_sq_1s
         for n in range(self.n_dept):
