@@ -32,8 +32,9 @@ class GibbsSampler:
         sigmas_squared = np.ones(self.n_dept) * sigmas_start
         tau_sq_1s = np.ones(self.n_dept) * tau_sq_1_start
         f = [np.ones(self.number_obs_in_each_dept[n]) * f_start for n in range(self.n_dept)]
-        gp_mats = [np.eye(self.number_obs_in_each_dept[dept]) for dept in
-                   range(self.n_dept)]
+        gp_mats = [self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
+                                                              bandwidth=bandwidths[dept],
+                                                              tau_sq_1=tau_sq_1s[dept]) for dept in range(self.n_dept)]
         return betas, sigmas_diag, mu, bandwidths, sigmas_squared, bandwidths, tau_sq_1s, f, gp_mats
 
     def _initialize_traces(self):
@@ -80,7 +81,7 @@ class GibbsSampler:
 
     def _update_tau_sq_1s_and_corr_mat(self):
         for dept in range(self.n_dept):
-            new_log_tau_sq1 = norm(loc=np.log(self.tau_sq_1s[dept]), scale=.1).rvs()
+            new_log_tau_sq1 = norm(loc=np.log(self.tau_sq_1s[dept]), scale=.5).rvs()
             new_tau_sq_1 = np.exp(new_log_tau_sq1)
             new_cov = self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
                                                               bandwidth=self.bandwidths[dept],
@@ -100,7 +101,7 @@ class GibbsSampler:
 
     def _update_bandwidths(self):
         for dept in range(self.n_dept):
-            new_log_bandwidth = norm(loc=np.log(self.bandwidths[dept]), scale=.1).rvs()
+            new_log_bandwidth = norm(loc=np.log(self.bandwidths[dept]), scale=.5).rvs()
             new_bandwidth = np.exp(new_log_bandwidth)
             new_cov = self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
                                                               bandwidth=new_bandwidth,
