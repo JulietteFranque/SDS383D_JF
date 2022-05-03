@@ -262,10 +262,25 @@ $\tau^2_2$ was set to $10 \times 10^{-6}$.
 \subsubsection{Simple Hierarchical Model with Gibbs Sampling and PyMC Implementations}
 Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. This model did not account for temporal correlations. However, given that few departments had auto-correlated residuals for simple OLS, the posteriors obtained with this simple model should be very close to the one obtained with a more sophisticated model. The traces were well-mixed; as shown for $\mu$ and $\mu_{jj}$ shown in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.
 
-
 \begin{figure}[h!]\label{traces}
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/traces_simple_model.png}
+\caption{Traces for $\mu$ and $\mu_{jj}$}
+\end{figure}
+
+
+The Gibbs sampler was also compared to the PyMC results. The posteriors looked very similar, except the posteriors for $\mu_2$ and $\Sigma_{22}$, as shown in Figure \ref{pymc1}. However, the posteriors for $\beta_2$ looked fairly similar as shown in Figure \ref{pymc2}. The differences may be due to the fact that the priors on $\sigma^2_i$ were different.
+
+\begin{figure}[h!]\label{pymc1}
+\centering
+\includegraphics[width=.6\textwidth]{project/writeup/compare_gibbs_pymc1.png}
+\caption{Traces for $\mu$ and $\mu_{jj}$}
+\end{figure}
+
+
+\begin{figure}[h!]\label{pymc2}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/compare_gibbs_pymc2.png}
 \caption{Traces for $\mu$ and $\mu_{jj}$}
 \end{figure}
 
