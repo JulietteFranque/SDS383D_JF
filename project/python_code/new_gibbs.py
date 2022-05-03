@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 class GibbsSampler:
-    def __init__(self, X, y, time_vecs, n_iter=1000, burn=500, betas_start=1, sigmas_start=1, mu_start=1,
+    def __init__(self, X, y, time_vecs, n_iter=150000, burn=0, betas_start=1, sigmas_start=1, mu_start=1,
                  sigmas_diag_start=1, bandwidth_start=10, tau_sq_1_start=20, f_start=10):
         self.X = X
         self.y = y
@@ -17,7 +17,7 @@ class GibbsSampler:
         self.n_dept = len(self.X)
         self.n_par = self.X[0].shape[1]
         self.number_obs_in_each_dept = np.array([X_dept.shape[0] for X_dept in self.X])
-        self.betas, self.sigmas_diag, self.mu, self.bandwidths, self.sigmas_squared, self.bandwidths, self.tau_sq_1s, self.f, self.gp_mats = self._initialize_parameters(
+        self.betas, self.sigmas_diag, self.mu, self.sigmas_squared, self.bandwidths, self.tau_sq_1s, self.f, self.gp_mats = self._initialize_parameters(
             betas_start, sigmas_start, mu_start, sigmas_diag_start, bandwidth_start, tau_sq_1_start, f_start)
         self.accept_tau = np.zeros(self.n_dept, dtype=bool)
         self.accept_bandwidth = np.zeros(self.n_dept, dtype=bool)
@@ -35,7 +35,7 @@ class GibbsSampler:
         gp_mats = [self._calculate_exp_covariance_function(x_1=self.time_vecs[dept], x_2=self.time_vecs[dept],
                                                               bandwidth=bandwidths[dept],
                                                               tau_sq_1=tau_sq_1s[dept]) for dept in range(self.n_dept)]
-        return betas, sigmas_diag, mu, bandwidths, sigmas_squared, bandwidths, tau_sq_1s, f, gp_mats
+        return betas, sigmas_diag, mu, bandwidths, sigmas_squared, tau_sq_1s, f, gp_mats
 
     def _initialize_traces(self):
         traces = {'betas': np.ones([self.n_iter, self.n_par, self.n_dept]) * np.nan,
