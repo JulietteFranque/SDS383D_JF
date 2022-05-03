@@ -60,7 +60,7 @@ The Google data columns of interest were date,  FIPS code (which corresponds to 
 
 The Google mobility data is reported as a percentage change from baseline. The baseline used is the median value for each day of the weeks over the January 3rd - February 6th 2020 period. To get a weekly average, a 7-day rolling average was used and the value for all Mondays was reported as the weekly average. \\
 
-In the NFORS data, the data of interest were date, fire department, and number of incidents reported for each date. For each fire department, gaps in data (where more than two consecutive days had zero incidents, which is very unlikely) were removed. Then, outliers were removed by fitting a negative binomial distribution to the incident counts of each department using moment matching and removing points outside the 95 \% confidence interval.\\
+In the NFORS data, the data of interest were date, fire department, and number of incidents reported for each date. Note that all types of incidents (fire, car crashes, and EMS) were pooled together in the incident counts. For each fire department, gaps in data (where more than two consecutive days had zero incidents, which is very unlikely) were removed. Then, outliers were removed by fitting a negative binomial distribution to the incident counts of each department using moment matching and removing points outside the 95 \% confidence interval.\\
 
 
 An incident baseline was calculated from the 2019 NFORS data and applied to the 2020 data. The baseline was calculated by taking the median of the number of incidents per day of the week per month for each department. Accounting for month as well as day of the week ensured that the seasonality in fire incidents was accounted for. Then, the percentage change for each day in 2020 was calculated from this baseline. Note that some departments were missing significant amounts of data and did not allow for calculating a baseline for each month and each day of the week in 2019. For missing baseline data points, the corresponding changes from baseline in 2020 could not be calculated.  Some department had no data for 2019, so they were not used in the analysis, As with the Google data, a weekly average for incident percentage change form baseline for each department was calculated. \\
@@ -91,7 +91,7 @@ Another concern was that the residuals (as plotted in Figure \ref{normal} - alth
     
 \begin{figure}[h]\label{normal}
 \centering
-\includegraphics[width=.55\textwidth]{normal_approx_1.png}
+\includegraphics[width=.5\textwidth]{normal_approx_1.png}
 \caption{Plots showing residuals with fitted normal with same moments as the residuals (left), Q-Q plot (middle), residuals against time (right). Only the first 9 departments are shown.}
 \end{figure}
 
@@ -99,27 +99,26 @@ Another concern was that the residuals (as plotted in Figure \ref{normal} - alth
 \begin{figure}[h]\label{autocorr}
 \centering
 \includegraphics[width=1\textwidth]{acf_plots1.png}
-\caption{ACF plots for all departments.}
+\caption{ACF plots for all departments for the residuals using linear regression on each department separately.}
 \end{figure}
 
-\section{Model}
-Given the auto-correlation in the residuals for some departments, a joint hierarchical and Gaussian process model was used. The model was structured as follows:
+\section{Models}
+\subsection{Simple Hierarchical Model}
+As a first step before considering the autocorrelation in the residuals shown above, a simple model which did not account for auto-correlation was used:
+
 
 \begin{align*}
-    &y_i = f_i (t_i) + \epsilon_i \\
+    &y_i = X_i \beta_i+ \epsilon_i \\
      &\epsilon_i \sim N(0, \sigma^2_i I)\\
-     &f_i (t_i) \sim GP(X_i \beta_i, C_i)\\
-     & \beta_i \sim N(\mu, \Sigma)
+      &\beta_i \sim N(\mu, \Sigma)
 \end{align*}
 
-Where $i$ is the department number, $t_i$ is the time vector for each department, $X_i$ is the design matrix for each department, $C_i$ is the GP covariance matrix which is a function of $t_i$, the bandwidth $b_i$, and $\tau^2_i$. The following priors were used:
+The following priors were used:
 
 \begin{align*}
     & \sigma^2_i \propto \frac{1}{\sigma^2_i}\\
     & \mu \propto c \\
     & \Sigma_{jj} \sim IG \left(\frac{1}{2}, \frac{1}{2} \right)\\
-    & b_i \sim U(1, 100)\\
-    & \tau^2 \sim U(1, 10000)
 \end{align*}
 
 
@@ -144,6 +143,56 @@ Where $\mu^* = \sum_{i=1}^{N}\beta_i/N $, $\Sigma^* = \Sigma/N$ and $N$ is the n
      & \propto  \Sigma_{jj}^{-\frac{N+1}{2}-1} \mbox{exp} \left \{  -\frac{1}{2\Sigma_{jj}  }\left[\sum_{i=1}^{N}(\beta_{ij} - \mu_j)^2 + 1 \right] \right \}\\
      & \sim IG \left(\frac{N+1}{2}, \frac{1}{2} \left[\sum_{i=1}^{N}(\beta_{ij} - \mu_j)^2 + 1 \right] \right)
 \end{align*}
+
+
+\begin{align*}
+     P(\sigma^2_i |y_i, \beta_i ) & \propto P(y_i| \sigma^2_i, \beta_i)P(\sigma^2_i)\\
+     & \propto \frac{1}{(\sigma^2_i)^{n_i/2}} \mbox{exp}\left \{ -\frac{1}{2}(y_i-X_i\beta_i)^T \sigma^{-2}_i(y_i-X_i\beta_i)      \right \} \frac{1}{\sigma^2_i}\\
+      & \propto (\sigma^2_i)^{-\frac{n_i}{2}-1} \mbox{exp}\left \{ -\frac{\sigma^{-2}_i}{2}(y_i-X_i\beta_i)^T (y_i-X_i\beta_i)\right \} \\
+      &  \sim IG\left(\frac{n_i}{2}, \frac{1}{2}(y_i-X_i\beta_i)^T (y_i-X_i\beta_i)\right)
+\end{align*}
+
+Where $n_i$ is the number of observations in each department.
+
+\begin{align*}
+     P(\beta_i | y_i, \sigma^2_i, \Sigma, \mu ) & \propto P(y_i| \beta_i,  \sigma^2_i)P(\beta_i| \Sigma, \mu) \\
+     & \propto\mbox{exp}\left \{ -\frac{1}{2}(y_i-X_i\beta_i)^T \sigma^{-2}_i(y_i-X_i\beta_i)      \right \} \mbox{exp}\left \{ -\frac{1}{2}(\beta_i-\mu)^T \Sigma^{-1}(\beta_i-\mu)      \right \} \\
+     & \propto \mbox{exp}\left \{ -\frac{1}{2}\left(-2\beta_i^T[\sigma^{-2}_iX_i^Ty_i + \Sigma^{-1}\mu] + \beta_i^T[\sigma^{-2}_i X^T_i X_i + 
+     \Sigma^{-1}]\beta_i \right)      \right \}\\
+    &\sim N_p (\mu^*, \Sigma^*)
+\end{align*}
+
+
+Where  $\Sigma^*=[\sigma^{-2}_iX^T_iX_i + 
+     \Sigma^{-1}]^{-1} $ $\mu^*=\Sigma^*[\sigma^{-2}_i X_i y_i + \Sigma^{-1}\mu]$.\\
+
+
+For learning purposes, the model was also implemented using PyMC. PyMC is a No U-Turn Sampler (NUTS), which is an extension of Hamiltonian Monte Carlo (HMC). HMC requires specifying a step size and number of steps. NUTS eliminates the need to set the number of steps and instead uses an algorithm that stops automatically
+when it starts retrace its steps. Note that Jeffrey's prior is not an option in PyMC (although it could likely be implemented with extra work), so a uniform prior was used for $\sigma_i^2$.
+
+\subsection{Gaussian Process/Hierarchical Model}
+Next, the hierarchical model shown above was improved to account for temporal correlation. The improved model was structured as follows:
+
+\begin{align*}
+    &y_i = f_i (t_i) + \epsilon_i \\
+     &\epsilon_i \sim N(0, \sigma^2_i I)\\
+     &f_i (t_i) \sim GP(X_i \beta_i, C_i)\\
+     & \beta_i \sim N(\mu, \Sigma)
+\end{align*}
+
+Where $i$ is the department number, $t_i$ is the time vector for each department, $X_i$ is the design matrix for each department, $C_i$ is the GP covariance matrix which is a function of $t_i$, the bandwidth $b_i$, and $\tau^2_i$. The following priors were used:
+
+\begin{align*}
+    & \sigma^2_i \propto \frac{1}{\sigma^2_i}\\
+    & \mu \propto c \\
+    & \Sigma_{jj} \sim IG \left(\frac{1}{2}, \frac{1}{2} \right)\\
+    & b_i \sim U(1, 100)\\
+    & \tau^2 \sim U(1, 10000)
+\end{align*}
+
+
+The conditionals for $\Sigma_{jj}$ and $\mu$ were the same as in the simple model. The following additional conditionals were needed:
+
 
 
 \begin{align*}
@@ -196,19 +245,37 @@ The two full conditionals above do not simplify to known distributions. Random w
 \end{itemize}
 
 
-After some trial and error, $\sigma'$ was set to 0.1 for both $b$ and $\tau_^2$.
+After some trial and error, $\sigma'$ was set to 0.1 for both $b$ and $\tau_^2$.\\
 
+In order to calculate the GPs covariance matrices $C_i$, the squared exponential function was used:
+
+\begin{align*}
+    C(x_1, x_2) = \tau_1^2 \mbox{exp} \left\{-\frac{1}{2} \left( \frac{x_2 - x_1}{b}\right)^2 \right\} + \tau_2^2  \delta(x_1, x_2)
+\end{align*}
+
+$\tau^2_2$ was set to $10 \times 10^{-6}$.
 
 \section{Results}
+
+\subsection{Model Check}
+
+\subsubsection{Simple Hierarchical Model with Gibbs Sampling and PyMC Implementations}
+Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. This model did not account for temporal correlations. However, given that few departments had auto-correlated residuals for simple OLS, the posteriors obtained with this simple model should be very close to the one obtained with a more sophisticated model. 
+
+
+\subsubsection{Gaussian Process Model}
+
 
 \begin{figure}[h]\label{autocorr_after}
 \centering
 \includegraphics[width=1\textwidth]{acf_plots_after.png}
-\caption{ACF plots for all departments.}
+\caption{ACF plots for all departments for the residuals of the hierarchical/Gaussian process model.}
 \end{figure}
 
 
 
+\subsection{Interpretation}
+The 
 
 
 \bibliography{refs} 
