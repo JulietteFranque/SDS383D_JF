@@ -188,7 +188,7 @@ Where $i$ is the department number, $t_i$ is the time vector for each department
     & \sigma^2_i \propto \frac{1}{\sigma^2_i}\\
     & \mu \propto c \\
     & \Sigma_{jj} \sim IG \left(\frac{1}{2}, \frac{1}{2} \right)\\
-    & b_i \sim U(1, 100)\\
+    & b_i \sim U(1, 200)\\
     & \tau^2 \sim U(1, 10000)
 \end{align*}
 
@@ -262,7 +262,7 @@ $\tau^2_2$ was set to $10 \times 10^{-6}$.
 \subsection{Model Check}
 
 \subsubsection{Simple Hierarchical Model with Gibbs Sampling and PyMC Implementations}
-Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. This model did not account for temporal correlations. However, given that few departments had auto-correlated residuals for simple OLS, the posteriors obtained with this simple model should be very close to the ones obtained with a more sophisticated model. The traces were well-mixed; as shown for $\mu$ and $\mu_{jj}$ in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.\\
+Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. The traces were well-mixed; as shown for $\mu$ and $\Sigma_{jj}$ in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.\\
 
 \begin{figure}[!htb]\label{traces}
 \centering
@@ -289,6 +289,11 @@ The Gibbs sampler was also compared to the PyMC results. The posteriors looked v
 
 
 \subsubsection{Gaussian Process Model}
+The Gaussian Process Hierarchical model was run four separate times to verify that the traces converged to the same posterior distributions. However, major issues were encountered with the model. Traces, especially for the bandwidths and $\tau^2_i$ were not well mixed, and the traces for the four chains did not converge to the same distribution. Additionally, the acceptance rates for the bandwidths and $\tau^2_i$ were too high for Metropolis-Hastings (>0.9). Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below. Selected traces for one department only is shown due to space constraints, but the issue occurred in almost all 42 departments.
+
+
+
+
 
 
 \begin{figure}[!htb]\label{autocorr_after}
@@ -305,13 +310,13 @@ The Gibbs sampler was also compared to the PyMC results. The posteriors looked v
 \begin{figure}[!htb]\label{corr_mat}
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/mean_betas.png}
-\caption{$\betas$ means}\end{figure}
+\caption{$\beta$ means}\end{figure}
 
 
 \begin{figure}[!htb]\label{corr_mat}
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/box_plots.png}
-\caption{$\betas$ boxplots}
+\caption{$\beta$ boxplots}
 \end{figure}
 
 
