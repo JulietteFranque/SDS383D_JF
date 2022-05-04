@@ -3,6 +3,7 @@ from scipy.stats import multivariate_normal, norm
 import numpy as np
 from scipy.optimize import minimize
 
+
 class GaussianProcess:
     def __init__(self, x_data, y_data, tau_sq_1=None, sigma_squared=1, tau_sq_2=1e-6, bandwidth=None):
         self.x = x_data
@@ -14,7 +15,8 @@ class GaussianProcess:
 
     def _calculate_exp_covariance_function(self, x_1, x_2):
         distance = distance_matrix(x_1, x_2)
-        cov = self.tau_sq_1 * np.exp(-1 / 2 * (distance / self.bandwidth) ** 2) + self.tau_sq_2 * np.eye(x_1.shape[0], x_2.shape[0])
+        cov = self.tau_sq_1 * np.exp(-1 / 2 * (distance / self.bandwidth) ** 2) + self.tau_sq_2 * np.eye(x_1.shape[0],
+                                                                                                         x_2.shape[0])
         return cov
 
     def _calculate_marginal_P_y(self, parameters):
@@ -35,16 +37,17 @@ class GaussianProcess:
         cov = C22 - (C21.T @ inv_mat @ C21)
         return H, mean, cov
 
-    def draw_GP_curves(self, x_pred, n_pred=10):
+    def draw_GP_curves(self, x_pred, n_pred):
         _, mean, cov = self._calculate_GP_parameters(x_pred)
         dist = multivariate_normal(mean, cov)
-        return dist.rvs(n_preed)
+        return dist.rvs(n_pred)
 
     def _find_optimal_parameters(self):
-        minimize(lambda parameters: -self._calculate_marginal_P_y(parameters), x0=np.array([1, 1]), bounds=((0, None),(0, None)), method='Powell')
+        minimize(lambda parameters: -self._calculate_marginal_P_y(parameters), x0=np.array([1, 1]),
+                 bounds=((0, None), (0, None)), method='Powell')
 
     def fit(self):
-        self. _find_optimal_parameters()
+        self._find_optimal_parameters()
 
     def predict(self, x_pred):
         H, y_pred, _ = self._calculate_GP_parameters(x_pred)
@@ -57,6 +60,3 @@ class GaussianProcess:
         lower = y_pred.flatten() - z * np.sqrt(var)
         upper = y_pred.flatten() + z * np.sqrt(var)
         return lower, upper
-
-
-
