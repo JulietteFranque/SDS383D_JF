@@ -85,7 +85,7 @@ The next step was to determine whether the incident data could be approximated a
 \begin{align*}
     y_i \sim N(X_i \beta_i, \sigma_i^2I)
 \end{align*}
-Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix.  A simple linear regression model was fit to the data for each department. As shown in Figure \ref{normal}, the Q-Q plots showed  that the residuals were approximately normally distributed; therefore no further transformations of the data were necessary.\\
+Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix.  OLS was used separately on each department's data. As shown in Figure \ref{normal}, the Q-Q plots showed  that the residuals were approximately normally distributed; therefore no further transformations of the data were necessary.\\
 
 Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix is diagonal was not appropriate. Figure \ref{autocorr} shows ACF plots for all departments. Some departments (for example, departments 12, 13, 25, 29) had multiple correlation coefficients outside the 95 \% confidence internal. For some departments, auto-correlation was not an issue.
     
@@ -289,18 +289,44 @@ The Gibbs sampler was also compared to the PyMC results. The posteriors looked v
 
 
 \subsubsection{Gaussian Process Model}
-The Gaussian Process Hierarchical model was run four separate times to verify that the traces converged to the same posterior distributions. However, major issues were encountered with the model. Traces, especially for the bandwidths and $\tau^2_i$ were not well mixed, and the traces for the four chains did not converge to the same distribution. Additionally, the acceptance rates for the bandwidths and $\tau^2_i$ were too high for Metropolis-Hastings (>0.9). Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below. Selected traces for one department only is shown due to space constraints, but the issue occurred in almost all 42 departments.
+The Gaussian Process Hierarchical model was run four separate times to verify that the traces converged to the same posterior distributions. However, major issues were encountered with the model. Traces, especially for the bandwidths and $\tau^2_i$ were not well mixed, and the traces for the four chains did not converge to the same distribution. Additionally, the acceptance rates for the bandwidths and $\tau^2_i$ were too high for Metropolis-Hastings (>0.9). Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below. Selected traces for one department only is shown due to space constraints, but the issue occurred in almost all 42 departments.\\
+
+Figure \ref{b} shows the traces for the bandwidth for department number 13. The traces are not well-mixed and the four chains did not seem to converge to the same posterior. Unsurprisingly, the Gelman-Rubin convergence diagnostic is not acceptable (1.25, which is above the commonly used cut-off of 1.1). Note that when calculating the diagnostic, the right 5,000 iterations were omitted. The chains for  $\tau^2$ looked more mixed but also did not converge; their Gelman-Rubin diagnostic was 1.35. The traces for $\beta_0$ were better, but not those for $\beta_1$ and $\beta_2$. The traces for $\sigma_i^2$ looked well-mixed but only after about 60,000 iterations. The traces for the first element of $f$ were also well mixed and had an acceptable Gelman-Rubin diagnostic.
 
 
 
 
 
-
-\begin{figure}[!htb]\label{autocorr_after}
+\begin{figure}[!htb]\label{b}
 \centering
-\includegraphics[width=1\textwidth]{acf_plots_after.png}
-\caption{ACF plots for all departments for the residuals of the hierarchical/Gaussian process model.}
+\includegraphics[width=1\textwidth]{project/writeup/bandwidth.png}
+\caption{Traces for the bandwidth for department number 13}\end{figure}
+
+
+
+\begin{figure}[!htb]\label{tau}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/tau.png}
+\caption{Traces for $\tau^2$ for department number 13}\end{figure}
+
+
+\begin{figure}[!htb]\label{beta}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/betas_traces.png}
+\caption{Traces for $\beta$ for department number 13}\end{figure}
+
+
+\begin{figure}[!htb]\label{sigma}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/sigma.png}
+\caption{Traces for $\sigma_i^2$ for department number 13}
 \end{figure}
+
+\begin{figure}[!htb]\label{f}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/f.png}
+\caption{Traces for the first element of $f$ for department number 13}\end{figure}
+
 
 
 
