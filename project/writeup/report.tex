@@ -78,10 +78,11 @@ An incident baseline was calculated from the 2019 NFORS data and applied to the 
 The various mobility types were highly correlated. Figure \ref{corr_mat} shows the correlation matrix for the mobility types for all departments. The correlation matrix is not surprising,  for example workplace mobility is inversely correlated with residential mobility. Parks, however, is not highly correlated with the other mobility types.
 
 
-\begin{figure}[!htb]\label{corr_mat}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.7\textwidth]{corr.png}
-\caption{Correlation Matrix}
+\caption{Correlation Matrix.}
+\label{corr_mat}
 \end{figure}
 
 To avoid multicolinearity issues in the model, principal component analysis was performed and the first two components were kept. The components were calculated by first subtracting the mean of each mobility type from the corresponding mobility values. Then, the covariance matrix for the centered data was calculated. Then, the eigenvalues (or the explained variance corresponding to each component) and the eigenvectors (components) of the covariance matrix were calculated. The two components corresponding to the two highest eigenvalues were kept. The first two components explained 99\% of the variance. The first component  pointed in the direction of ``parks'' and the second pointed in the direction of ``retail/recreation'', ``grocery/pharmacy'', ``workplaces'' and away from ``residential''(see Table \ref{table}). The first component can easily be interpreted as park mobility, and the second as increasing ``city'' mobility and decreasing residential mobility. The original data were transformed using the chosen components.\\
@@ -109,17 +110,19 @@ Where $i$ is the fire department, $X_i$ is the design matrix including an interc
 Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix is diagonal is not an appropriate assumption. Figure \ref{autocorr} shows ACF plots for all departments. Some departments (for example, departments 12, 13, 25, 29) had multiple correlation coefficients outside the 95 \% confidence internal. For some departments, auto-correlation was not an issue.
     
     
-\begin{figure}[!htb]\label{normal}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.5\textwidth]{normal_approx_1.png}
 \caption{Plots showing residuals with fitted normal with same moments as the residuals (left), Q-Q plot (middle), residuals against time (right). Only the first 9 departments are shown.}
+\label{normal}
 \end{figure}
 
 
-\begin{figure}[!htb]\label{autocorr}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=1\textwidth]{acf_plots1.png}
 \caption{ACF plots for all departments for the residuals using linear regression on each department separately.}
+\label{autocorr}
 \end{figure}
 
 \newpage
@@ -257,7 +260,7 @@ The last conditional  did not simplify to a known distribution. Random walk Metr
 
 \begin{itemize}
     \item Initialize $b_i$ and $\tau_i^2$ in a feasible region
-    \item Draw $b_{i, t+1}$ and $\tau^2_{i, t+1}$ from separate normal distributions centered at  $b_{i, t}$ and $\tau^2_{i, t}$ with given standard deviations. If the proposed value is below 0, choose 0 instead. 
+    \item Draw $b_{i, t+1}$ and $\tau^2_{i, t+1}$ from separate normal distributions centered at  $b_{i, t}$ and $\tau^2_{i, t}$ with given variances. If the proposed value is below 0, choose 0 instead. 
     \item Calculate the logarithm of the ratio of the 
     new posterior to the old posterior. Taking the logarithm helps with numerical stability.
     \item Draw a value from $U(0,1)$. If the ratio above is larger than the logarithm of the drawn value, accept the new parameters. Otherwise, keep the old parameters.
@@ -281,70 +284,78 @@ $\tau^2_2$ was set to $10 \times 10^{-5}$. $\tau^2_1$ is referred to as $\tau^_2
 \subsubsection{Simple Hierarchical Model with Gibbs Sampling and PyMC Implementations}
 Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. The traces were well-mixed; as shown for example for $\mu$ and the diagonal elements of $\Sigma$ in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.\\
 
-\begin{figure}[!htb]\label{traces}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/traces_simple_model.png}
-\caption{Traces for $\mu$ and the diagonal elements of $\Sigma$}
+\caption{Traces for $\mu$ and the diagonal elements of $\Sigma$.}
+\label{traces}
 \end{figure}
 
 
 The Gibbs sampler was also compared to the PyMC results. The posteriors looked almost identical despite the different priors used, as shown in Figures \ref{pymc1} and \ref{pymc2}. 
-\begin{figure}[!htb]\label{pymc1}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.35\textwidth]{project/writeup/compare_gibbs_pymc1.png}
-\caption{Posteriors for $\mu$ and $\Sigma$}
+\caption{Posteriors for $\mu$ and $\Sigma$.}
+\label{pymc1}
 \end{figure}
-\begin{figure}[!htb]\label{pymc2}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.85\textwidth]{project/writeup/compare_gibbs_pymc2.png}
-\caption{Posteriors for $\beta_2$}
+\caption{Posteriors for $\beta_2$.}
+\label{pymc2}
 \end{figure}
 
 \newpage
 
 
 \subsubsection{Gaussian Process Model}
-The Gaussian process hierarchical model was run two separate times to verify that the traces converged to the same posterior distributions. However, issues were encountered with the model. The traces were not well mixed, and most traces for the four chains did not converge to the same distribution. The acceptance rates for the bandwidths and $\tau^2_i$ were around 53 \% on average across departments. Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below.  Traces for one particularly bad department are shown .\\
+The Gaussian process hierarchical model was run two separate times to verify that the traces converged to the same posterior distributions. However, issues were encountered with the model. The traces were not all well mixed, and some traces for the two chains did not converge to the same distribution. The acceptance rates for the bandwidths and $\tau^2_i$ were around 53\% (averaged across departments). Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (100,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below.  Traces for one department (number 6) are shown .\\
 
-Figure \ref{b} shows the traces for the bandwidth for department number 13. The traces are not well-mixed and the four chains did not seem to converge to the same posterior. Unsurprisingly, the Gelman-Rubin convergence diagnostic was not acceptable (1.25, which is above the commonly used cut-off of 1.1). Note that when calculating the diagnostic, the first 5,000 iterations were omitted. The chains for  $\tau^2$ looked more mixed but also did not converge; their Gelman-Rubin diagnostic was 1.35. The traces for $\beta_0$ were better, but not those for $\beta_1$ and $\beta_2$. The traces for $\sigma_i^2$ looked well-mixed but only after about 60,000 iterations. The traces for the first element of $f$ were also well mixed and had an acceptable Gelman-Rubin diagnostic.
-
-
+Figure \ref{b} shows the traces for the bandwidth for department number 6. The traces are relatively well-mixed; their Gelman-Rubin convergence diagnostic was  around 1. Note that when calculating the diagnostic, the first 5,000 iterations were omitted. The chains for  $\tau^2$ looked more mixed; their Gelman-Rubin diagnostic was also around 1. The traces for $\beta_0$ were better, but  those for $\beta_1$ and $\beta_2$ were most problematic. Unsurprisingly, their Gelman-Rubin diagnostics were not acceptable (> 1.1, the commonly used threshold). The traces for $\mu$ and the diagonal elements of $\Sigma$ looked well-mixed, but did not seem to converge until about 80,000 iterations. The posteriors for these were also significantly different than those obtained with the simple Gibbs sampler, which  was surprising and may further indicate that something was wrong with the GP model.\\
 
 
 
-\begin{figure}[!htb]\label{b}
+
+
+\begin{figure}[!htb]
 \centering
-\includegraphics[width=.8\textwidth]{project/writeup/bandwidth.png}
-\caption{Traces for the bandwidth for department number 13.}\end{figure}
-\begin{figure}[!htb]\label{tau}
+\includegraphics[width=.8\textwidth]{project/writeup/bandwidths.png}
+
+\caption{Traces for the bandwidth for department number 6.}
+\label{b}\end{figure}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.8\textwidth]{project/writeup/tau.png}
-\caption{Traces for $\tau^2$ for department number 13.}\end{figure}
-\begin{figure}[!htb]\label{beta}
+\caption{Traces for $\tau^2$ for department number 6.}
+\label{tau}\end{figure}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.8\textwidth]{project/writeup/betas_traces.png}
-\caption{Traces for $\beta$ for department number 13.}\end{figure}
-\begin{figure}[!htb]\label{sigma}
+
+\caption{Traces for $\beta$ for department number 6.}\label{beta}
+\end{figure}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.8\textwidth]{project/writeup/sigma.png}
-\caption{Traces for $\sigma_i^2$ for department number 13.}
+\caption{Traces for $\sigma_i^2$ for department number 6.}
+\label{sigma}
 \end{figure}
-\begin{figure}[!htb]\label{f}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=.8\textwidth]{project/writeup/f.png}
-\caption{Traces for the first element of $f$ for department number 13.}\end{figure}
-
-\newpage
-
-Despite the issues with some traces, the posteriors for $\mu$ and $\Sigma$ for the GP model and the simple model were similar, as shown in Figure \ref{gibbs_gp}.\\
+\caption{Traces for the first element of $f$ for department number 6.}
+\label{f}\end{figure}
 
 
-\begin{figure}[!htb]\label{gibbs_gp}
+
+
+\begin{figure}[!htb]
 \centering
-\includegraphics[width=0.4\textwidth]{project/writeup/compare_gibbs_gp.png}
-\caption{Posteriors for $\mu$ and $\Sigma$ for Gibbs Sampling and GP model.}\end{figure}
+\includegraphics[width=.8\textwidth]{project/writeup/traces_all.png}
+\caption{Traces for the $\mu$ and $\Sigma$ for the GP model.}\end{figure}
 
-\newpage
+
 Some ideas to solve the issues encountered which were not attempted are:
 \begin{itemize}[noitemsep]
     \item run the model for more iterations
@@ -353,9 +364,11 @@ Some ideas to solve the issues encountered which were not attempted are:
 \end{itemize}
 It is also possible that there was an issue with the code. Because of the issues with the traces, the interpretation of the results in the next section is based on the results from the Gibbs sampler without the GP model.
 
-\newpage
+\clearpage
+
+
 \subsection{Interpretation}
-The first parameters of interest were the mean and diagonal terms for the covariance matrix for $\beta$. These are shown above in Figure \ref{gibbs_gp}; the simple Gibbs sampling posteriors are shown in blue. Table \ref{tab2} shows the posterior means:\\
+The first parameters of interest were the mean and diagonal terms for the covariance matrix for $\beta$. These are shown above in Figure \ref{pymc1}; the simple Gibbs sampling posteriors are shown in blue. Table \ref{tab2} shows the posterior means:\\
 
 
 \begin{table}[!htb]
@@ -371,39 +384,45 @@ The first parameters of interest were the mean and diagonal terms for the covari
 \label{tab2}
 \end{table}
 
-The first mean is negative and the other two positive. This means that on average, $\beta_0$ is negative and $\beta_1$  and $\beta_2$ are positive. On average, the intercept, which is the percentage difference in incident counts between 2019 and 2020 not explained by mobility changes was negative. On average, an increase in park traffic resulted in an increase in incident compared to baseline. An increase in residential traffic/decrease in all other types of mobility resulted in a decrease in incident compared to baseline.  It is interesting to see that the posterior for $\mu_{2}$ only covers positive values, which is not the case for $\mu_{1}$. The first diagonal elements of the covariance is large, meaning that there is a strong department effect for $\beta_0$. It is smaller for the two other $\beta$. \\
+The first mean was negative and the other two positive. This means that on average, $\beta_0$ was negative and $\beta_1$  and $\beta_2$ were positive. This implies that on average, the incident counts in 2020 not explained by mobility were lower than in 2019. It also implies that an increase in park traffic resulted in an increase in incident compared to baseline, and that an increase in residential traffic/decrease in all other types of mobility resulted in a decrease in incident compared to baseline.  It is interesting to see that the posterior for $\mu_{2}$ only covers positive values, which is not the case for $\mu_{1}$. The first diagonal elements of the covariance is large, meaning that there is a strong department effect for $\beta_0$. It is smaller for the two other $\beta$. \\
 
 Figure \ref{all_betas} shows the posterior mean for the $\beta$ vector for each department, and Figure \ref{boxplot} shows the corresponding box plots. As expected from the fact that the first diagonal element of $\Sigma$ was large, the spread in $\beta_0$ across departments was significant. There are many variables which could explain a positive intercept: aging population, an unusually low baseline in 2019, decreasing population, covid EMS calls, growing population etc. A negative intercept may be explained by an unusually high baseline in 2019, decreasing population, etc. \\
 
-The $\beta_1$ elements were mostly positive, which means that increased traffic to parks resulted in more incidents compared to baseline. This is intuitive given injury risks associated with going to parks, especially national/state parks and beaches. However, a few departments had negative values. It is difficult to imagine why this coefficient would be negative. It is possible Covid cases  is a ``lurking'' variable not accounted for by the model. Covid cases are likely inversely correlated with traffic to parks, and may make the parks coefficients lower than they really are.  To avoid this issue, one could add a Covid cases feature to the design matrix.\\
+The $\beta_1$ elements were mostly positive, which means that increased traffic in parks resulted in more incidents compared to baseline. This is intuitive given injury risks associated with going to parks, especially national/state parks and beaches. $\beta_2$ was also mostly positive, as expected. A couple coefficients were negative for both $\beta_1$ and  $\beta_2$, which is difficult to explain intuitively. It is possible Covid cases  is a ``lurking'' variable not accounted for by the model. Covid cases are likely inversely correlated with ``city'' mobility
+and may make the $\beta_2$ coefficients lower than they really are.  To avoid this issue, one could add a Covid cases feature to the design matrix.\\
+
+The relationship between the $\beta$ coefficients and county population and state was explored, but no strong correlations were found.\\
 
 
- $\beta_2$ was also mostly positive, as expected. A couple coefficients were negative, which again, may be due to the fact that Covid cases were not modeled. The relationship between the $\beta$ coefficients and county population and state was explored, but no strong correlations were found.\\
 
-
-
-\begin{figure}[!htb]\label{all_betas}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/mean_betas.png}
-\caption{$\beta$ means}\end{figure}
+\caption{$\beta$ means.}
+\label{all_betas}
+\end{figure}
 
 
-\begin{figure}[!htb]\label{boxplot}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/box_plots.png}
-\caption{$\beta$ boxplots}
+\caption{$\beta$ boxplots.}
+\label{boxplot}
 \end{figure}
+\newpage
 
-Lastly, Figure \ref{shrink} shows a visualization of the shrinkage of the $\beta$ vectors. Shrinking means that the posterior mean for $\beta$ is pulled towards the grand mean $\mu$ as opposed to being pulled towards the OLS value for $\beta$. High variance in the data, small diagonal values for $\Sigma$ and few data points in departments' datasets can cause high shrinkage. Some departments showed unexpected behavior. For example, $\beta_1$ for department 12 was shrunk from a positive to a negative value and its two other coefficients were significantly shrunk. This was caused by the fact that PCA was globally performed on the data (as opposed to for each department separately) of all departments. This caused issues for some departments for which the two components ended up being highly correlated. This explained the unexpected shrinkage on this plot.
+Lastly, Figure \ref{shrink} shows a visualization of the shrinkage of the $\beta$ vectors. Shrinking means that the posterior mean for $\beta$ is pulled towards the grand mean $\mu$ as opposed to being pulled towards the OLS value for $\beta$. High variance in the data, small diagonal values for $\Sigma$ and few data points in departments' datasets can cause high shrinkage. Some departments showed unexpected behavior. For example, $\beta_1$ for department 12 was shrunk from a positive to a negative value and its two other coefficients were significantly shrunk. This was caused by the fact that PCA was globally performed on the data of all departments (as opposed to for each department separately) . This caused issues for some departments for which the two components ended up being highly correlated. This explained the unexpected shrinkage behavior for some departments in this plot.
 
-\begin{figure}[!htb]\label{shrink}
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/shrinkage.png}
-\caption{$\beta$ boxplots}
+\caption{Visualization of shrinkage.}
+\label{shrink}
 \end{figure}
 
 
-
+\section{Conclusion and Future Work}
+The analysis above confirmed that on average, the decrease in ``city'' mobility over the pandemic caused a decrease in incidents, while the increase in ``park'' mobility caused an increase in incidents. This information may help fire departments learn from this pandemic and better allocate resources in the future. The model could be improved significantly by including Covid cases as a variable, which would make it easier to interpret the $\beta$ vectors. In this analysis, all incident types were pooled together. It may be useful to redo this analysis for each incident type, given that resource allocation is different for each incident type. Additionally, there were issues with the GP model; running it for longer, changing the proposal distributions or the priors on the covariance parameters may help the traces converge to a stationary distribution. It would also be interesting to implement the GP model in PyMC. 
 
 
 \bibliography{refs} 
