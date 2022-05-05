@@ -49,7 +49,7 @@
 \newpage
 \section{Introduction}
 
-The COVID-19 pandemic resulted in stay-at-home orders across the world. As a result, people spent more time at home and in outdoor areas and less time commuting to work or restaurants. This report explores the relationship between the changes in mobility patterns of the general population and the number of incidents reported by fire departments in the United States in 2020. Several studies have already explored the effect of COVID-19 on fire incidents. For example, Suzuki and Manzello \cite{fire_paper} analyzed the effect of stay-at-home orders on cooking fires in major cities. Koester and Greatbatch \cite{koester2020comparing} investigated the impact of the onset of the pandemic on fire and search and rescue incident frequency. This report uses NFORS \cite{nfors} analytics data provided by the International Public Safety Data Institute and 2020 Google Mobility data \cite{google}. The names of the fire departments were hidden for anonymity. 
+The COVID-19 pandemic resulted in stay-at-home orders across the world. People spent more time at home and in outdoor areas and less time at work and restaurants. This project explores the relationship between the changes in mobility patterns of the population and the number of incidents reported by fire departments in the United States in 2020. Several studies have  explored the effect of COVID-19 on fire incidents. For example, Suzuki and Manzello \cite{fire_paper} analyzed the effect of stay-at-home orders on cooking fires in major cities. Koester and Greatbatch \cite{koester2020comparing} investigated the impact of the onset of the pandemic on fire and search and rescue incident frequency. This report uses NFORS \cite{nfors} analytics data provided by the International Public Safety Data Institute and 2020 Google Mobility data \cite{google}. The names of the fire departments used in the analysis were hidden to preserve  anonymity. 
 
 \section{Data Formatting}
 The raw NFORS and Google datasets were formatted to obtain:
@@ -64,18 +64,18 @@ The raw NFORS and Google datasets were formatted to obtain:
 The Google data columns of interest were date,  FIPS code (which corresponds to unique county) and percentage change from baseline for workplace, residential, retail, parks, and grocery/pharmacy mobility. First, the Google mobility data were grouped by FIPS code.  The data with FIPS codes corresponding to those of the counties of the fire departments in the NFORS data were kept.\\
 
 
-The Google mobility data is reported as a percentage change from baseline. The baseline used is the median value for each day of the week over the January 3rd - February 6th 2020 period. To get a weekly average, a 7-day rolling average was used and the value for all Mondays was reported as the weekly average. \\
+The raw Google mobility data is reported as a percentage change from baseline. The baseline used is the median value for each day of the week over the January 3rd - February 6th 2020 period. To get a weekly average, a 7-day rolling average was used and the value for all Mondays was reported as the weekly average. \\
 
-In the NFORS data, the columns of interest were date, fire department, and number of incidents reported for each date. Note that all types of incidents (fire, car crashes, and EMS) were pooled together in the incident counts. For each fire department, gaps in data (where more than two consecutive days had zero incidents, which is very unlikely) were removed. Then, outliers were removed by fitting a negative binomial distribution to the incident counts of each department using moment matching and removing points outside the 95 \% confidence interval.\\
+The columns of interest in the NFORS data were date, fire department, and number of incidents reported for each date. Note that all types of incidents (fire, car crashes, and EMS) were pooled together in the incident counts. For each fire department, gaps in data (where more than two consecutive days had zero incidents, which is very unlikely) were removed. Then, outliers were removed by fitting a negative binomial distribution to the incident counts of each department using moment matching and removing points outside the 95 \% confidence interval.\\
 
 
 An incident baseline was calculated from the 2019 NFORS data and applied to the 2020 data. The baseline was calculated by taking the median of the number of incidents per day of the week per month for each department. Accounting for month as well as day of the week ensured that the seasonality in fire incidents was accounted for. Then, the percentage change for each day in 2020 was calculated from this baseline. Note that some departments were missing significant amounts of data and did not allow for calculating a baseline for each month and each day of the week in 2019. For missing baseline data points, the corresponding changes from baseline in 2020 could not be calculated.  Some department had no data for 2019, so they were not used in the analysis, As with the Google data, a weekly average for incident percentage change from baseline for each department was calculated. \\
 
- The resulting data format was an $X_i \in \mathbb{R}^{n_i \times p}$ matrix for each department, where $p$ is the number of mobility types (workplace, retail, etc), $i$ is the department, and $n_i$ is the number of weekly averages for each department. Note that ideally, each department would have had $n_i = 52$ because there are 52 weeks in a year, but the Google mobility data only begins in February 2020 and some departments had missing data. Each department also had a $y_i \in \mathbb{R}^{n_i}$ vector of incident percentage change from baseline corresponding to the $X_i$ matrices. Additionally, each department had a $t_i \in \mathbb{R}^{n_i}$ vector containing the day of the year that the observations are for (days all correspond to Mondays because the weekly averages were evaluated on Mondays).
+ The resulting data format  an $X_i \in \mathbb{R}^{n_i \times p}$ matrix for each department, where $p$ is the number of mobility types (workplace, retail, etc), $i$ is the department, and $n_i$ is the number of weekly averages for each department. Note that ideally, each department would have had $n_i = 52$ for the 52 weeks of 2020, but the Google mobility data only begins in February 2020 and some departments had missing data. Each department also had a $y_i \in \mathbb{R}^{n_i}$ vector of incident percentage change from baseline corresponding to the $X_i$ matrices. Additionally, each department had a $t_i \in \mathbb{R}^{n_i}$ vector containing the day of the year that the observations are for (days all correspond to Mondays because the weekly averages were evaluated on Mondays).
 
 
 \section{Data Exploration}
-Unsurprisingly, the various mobility types were highly correlated. Figure \ref{corr_mat} shows the correlation matrix for the mobility types for all departments. Again, the results are not surprising,  for example workplace mobility is inversely correlated with residential mobility. Parks, however, is not highly correlated with the other mobility types.
+The various mobility types were highly correlated. Figure \ref{corr_mat} shows the correlation matrix for the mobility types for all departments. The correlation matrix is not surprising,  for example workplace mobility is inversely correlated with residential mobility. Parks, however, is not highly correlated with the other mobility types.
 
 
 \begin{figure}[!htb]\label{corr_mat}
@@ -93,20 +93,20 @@ To avoid multicolinearity issues in the model, principal component analysis was 
 \textbf{\begin{tabular}[c]{@{}l@{}}first \\ component\end{tabular}}  & 0.108                      & 0.080                     & 0.991          & 0.008               & -0.018               \\ \hline
 \textbf{\begin{tabular}[c]{@{}l@{}}second \\ component\end{tabular}} & 0.646                      & 0.311                     & -0.106         & 0.639               & -0.258               \\ \hline
 \end{tabular}
-\caption{First two PCA components}
+\caption{First two PCA components.}
 \label{table}
 \end{table}
 
 
 
 
-The next step was to determine whether the incident data could be approximated as being normally distribution, where:
+The next step was to determine whether the incident data could be approximated as being normally distributed, where:
 \begin{align*}
     y_i \sim N(X_i \beta_i, \sigma_i^2I)
 \end{align*}
 Where $i$ is the fire department, $X_i$ is the design matrix including an intercept and transformed mobility data, $y_i$ is the response vector, $\beta_i \in \mathbb{R}^{p}$, and $I$ is the $n_i \times n_i$ identity matrix.  OLS was used separately on each department's data. As shown in Figure \ref{normal}, the Q-Q plots show  that the residuals were approximately normally distributed; therefore no further transformations of the data were necessary.\\
 
-Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix is diagonal was not appropriate. Figure \ref{autocorr} shows ACF plots for all departments. Some departments (for example, departments 12, 13, 25, 29) had multiple correlation coefficients outside the 95 \% confidence internal. For some departments, auto-correlation was not an issue.
+Another concern was that the residuals (as plotted in Figure \ref{normal} - although some departments showed worse correlation than the 9 plotted) may be auto-correlated, in which case assuming that the covariance matrix is diagonal is not an appropriate assumption. Figure \ref{autocorr} shows ACF plots for all departments. Some departments (for example, departments 12, 13, 25, 29) had multiple correlation coefficients outside the 95 \% confidence internal. For some departments, auto-correlation was not an issue.
     
     
 \begin{figure}[!htb]\label{normal}
@@ -125,7 +125,7 @@ Another concern was that the residuals (as plotted in Figure \ref{normal} - alth
 \newpage
 \section{Models}
 \subsection{Simple Hierarchical Model}
-As a first step before considering the autocorrelation in the residuals shown above, a simple model which did not account for auto-correlation was used:
+As a first step before considering the autocorrelation in the residuals shown above, a simple partially pooled linear regression model was used:
 
 
 \begin{align*}
@@ -189,7 +189,7 @@ Where  $\Sigma^*=[\sigma^{-2}_iX^T_iX_i +
 
 
 For learning purposes, the model was also implemented using PyMC. PyMC is a No U-Turn Sampler (NUTS), which is an extension of Hamiltonian Monte Carlo (HMC). HMC requires specifying a step size and number of steps. NUTS eliminates the need to set the number of steps and instead uses an algorithm that stops automatically
-when it starts retrace its steps. Note that Jeffrey's prior is not an option in PyMC (although it could likely be implemented with extra work), so a uniform prior was used for $\sigma_i^2$.
+when it starts to retrace its steps. Note that Jeffrey's prior is not an option in PyMC (although it could likely be implemented with extra work), so a uniform prior was used for $\sigma_i^2$.
 
 \subsection{Gaussian Process/Hierarchical Model}
 Next, the hierarchical model shown above was improved to account for temporal correlation. The improved model was structured as follows:
@@ -207,12 +207,12 @@ Where $i$ is the department number, $t_i$ is the time vector for each department
     & \sigma^2_i \propto \frac{1}{\sigma^2_i}\\
     & \mu \propto c \\
     & \Sigma_{jj} \sim IG \left(\frac{1}{2}, \frac{1}{2} \right)\\
-    & b_i \sim U(1, 200)\\
-    & \tau^2 \sim U(1, 10000)
+    & b_i \sim U(1, 150)\\
+    & \tau^2 \sim U(1, 100)
 \end{align*}
 
 
-The conditionals for $\Sigma_{jj}$ and $\mu$ were the same as in the simple model. The  additional conditionals were needed:
+The conditionals for $\Sigma_{jj}$ and $\mu$ were the same as in the simple model. In  addition, the following conditionals were needed:
 
 
 
@@ -250,20 +250,20 @@ Where  $\Sigma^*=[X^T_iC_i^{-1}X_i +
 Where  $\Sigma^*=[\sigma_i^{-2}I + C_i^{-1}]^{-1} $ $\mu^*=\Sigma^*[\sigma_i^{-2}y_i + C_i^{-1}X_i\beta_i]$, and
 
 \begin{align*}
-     & P(b_i,\tau_i^2 | \beta_i)  \propto P(f_i|b_i, \tau_i^2, \beta_i)P(b_i)P(\tau_i^2) \\
+     & P(b_i,\tau_i^2 | f_i)  \propto P(f_i|b_i, \tau_i^2, \beta_i)P(b_i)P(\tau_i^2) \\
 \end{align*}
 
-The last conditional  did not simplify to known distributions. Random walk Metropolis-Hastings was used to jointly update $b_i$ and $\tau_i^2$ as shown below:
+The last conditional  did not simplify to a known distribution. Random walk Metropolis-Hastings was used to jointly update $b_i$ and $\tau_i^2$ as shown below:
 
 \begin{itemize}
     \item Initialize $b_i$ and $\tau_i^2$ in a feasible region
     \item Draw $b_{i, t+1}$ and $\tau^2_{i, t+1}$ from separate normal distributions centered at  $b_{i, t}$ and $\tau^2_{i, t}$ with given standard deviations. If the proposed value is below 0, choose 0 instead. 
-    \item calculate the logarithm of the ratio of the 
+    \item Calculate the logarithm of the ratio of the 
     new posterior to the old posterior. Taking the logarithm helps with numerical stability.
     \item Draw a value from $U(0,1)$. If the ratio above is larger than the logarithm of the drawn value, accept the new parameters. Otherwise, keep the old parameters.
 \end{itemize}
 
-The standard deviations for the proposal distributions were chosen by trial and error.\\
+The variances for the proposal distributions were chosen by trial and error.\\
 
 
 In order to calculate the GPs covariance matrices $C_i$, the squared exponential function was used:
@@ -279,7 +279,7 @@ $\tau^2_2$ was set to $10 \times 10^{-5}$. $\tau^2_1$ is referred to as $\tau^_2
 \subsection{Model Check}
 
 \subsubsection{Simple Hierarchical Model with Gibbs Sampling and PyMC Implementations}
-Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. The traces were well-mixed; as shown for $\mu$ and the diagonal elements of $\Sigma$ in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.\\
+Similar versions of the simple hierarchical model were implemented in class, so as expected, no issues were encountered in the implementation. The traces were well-mixed; as shown for example for $\mu$ and the diagonal elements of $\Sigma$ in Figure  \ref{traces}. The Gibbs sampler was run for 10,000 iterations and the first 1,000 were discarded.\\
 
 \begin{figure}[!htb]\label{traces}
 \centering
@@ -287,10 +287,11 @@ Similar versions of the simple hierarchical model were implemented in class, so 
 \caption{Traces for $\mu$ and the diagonal elements of $\Sigma$}
 \end{figure}
 
+
 The Gibbs sampler was also compared to the PyMC results. The posteriors looked almost identical despite the different priors used, as shown in Figures \ref{pymc1} and \ref{pymc2}. 
 \begin{figure}[!htb]\label{pymc1}
 \centering
-\includegraphics[width=.4\textwidth]{project/writeup/compare_gibbs_pymc1.png}
+\includegraphics[width=.35\textwidth]{project/writeup/compare_gibbs_pymc1.png}
 \caption{Posteriors for $\mu$ and $\Sigma$}
 \end{figure}
 \begin{figure}[!htb]\label{pymc2}
@@ -303,7 +304,7 @@ The Gibbs sampler was also compared to the PyMC results. The posteriors looked a
 
 
 \subsubsection{Gaussian Process Model}
-The Gaussian process hierarchical model was run four separate times to verify that the traces converged to the same posterior distributions. However, issues were encountered with the model. Traces, especially for the bandwidths and $\tau^2_i$ were not well mixed, and most traces for the four chains did not converge to the same distribution. Additionally, the acceptance rates for the bandwidths and $\tau^2_i$ were too high for Metropolis-Hastings (>0.9). Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below. Selected traces for one department only is shown due to space constraints, but the issue occurred in almost all 42 departments.\\
+The Gaussian process hierarchical model was run two separate times to verify that the traces converged to the same posterior distributions. However, issues were encountered with the model. The traces were not well mixed, and most traces for the four chains did not converge to the same distribution. The acceptance rates for the bandwidths and $\tau^2_i$ were around 53 \% on average across departments. Attempts were made to fix the issues encountered: several variances in the proposal distributions were tested and the model was run for as long as possible given time constraints (150,000 iterations). However, the issues remained. The issues discussed are illustrated in the plots below.  Traces for one particularly bad department are shown .\\
 
 Figure \ref{b} shows the traces for the bandwidth for department number 13. The traces are not well-mixed and the four chains did not seem to converge to the same posterior. Unsurprisingly, the Gelman-Rubin convergence diagnostic was not acceptable (1.25, which is above the commonly used cut-off of 1.1). Note that when calculating the diagnostic, the first 5,000 iterations were omitted. The chains for  $\tau^2$ looked more mixed but also did not converge; their Gelman-Rubin diagnostic was 1.35. The traces for $\beta_0$ were better, but not those for $\beta_1$ and $\beta_2$. The traces for $\sigma_i^2$ looked well-mixed but only after about 60,000 iterations. The traces for the first element of $f$ were also well mixed and had an acceptable Gelman-Rubin diagnostic.
 
@@ -377,7 +378,7 @@ Figure \ref{all_betas} shows the posterior mean for the $\beta$ vector for each 
 The $\beta_1$ elements were mostly positive, which means that increased traffic to parks resulted in more incidents compared to baseline. This is intuitive given injury risks associated with going to parks, especially national/state parks and beaches. However, a few departments had negative values. It is difficult to imagine why this coefficient would be negative. It is possible Covid cases  is a ``lurking'' variable not accounted for by the model. Covid cases are likely inversely correlated with traffic to parks, and may make the parks coefficients lower than they really are.  To avoid this issue, one could add a Covid cases feature to the design matrix.\\
 
 
- $\beta_2$ was also mostly positive, as expected. A couple coefficients were negative, which again, may be due to the fact that Covid cases were not modeled. The relationship between the $\beta$ coefficients and county population and state was explored, but no strong correlations were found.
+ $\beta_2$ was also mostly positive, as expected. A couple coefficients were negative, which again, may be due to the fact that Covid cases were not modeled. The relationship between the $\beta$ coefficients and county population and state was explored, but no strong correlations were found.\\
 
 
 
@@ -390,6 +391,14 @@ The $\beta_1$ elements were mostly positive, which means that increased traffic 
 \begin{figure}[!htb]\label{boxplot}
 \centering
 \includegraphics[width=1\textwidth]{project/writeup/box_plots.png}
+\caption{$\beta$ boxplots}
+\end{figure}
+
+Lastly, Figure \ref{shrink} shows a visualization of the shrinkage of the $\beta$ vectors. Shrinking means that the posterior mean for $\beta$ is pulled towards the grand mean $\mu$ as opposed to being pulled towards the OLS value for $\beta$. High variance in the data, small diagonal values for $\Sigma$ and few data points in departments' datasets can cause high shrinkage. Some departments showed unexpected behavior. For example, $\beta_1$ for department 12 was shrunk from a positive to a negative value and its two other coefficients were significantly shrunk. This was caused by the fact that PCA was globally performed on the data (as opposed to for each department separately) of all departments. This caused issues for some departments for which the two components ended up being highly correlated. This explained the unexpected shrinkage on this plot.
+
+\begin{figure}[!htb]\label{shrink}
+\centering
+\includegraphics[width=1\textwidth]{project/writeup/shrinkage.png}
 \caption{$\beta$ boxplots}
 \end{figure}
 
