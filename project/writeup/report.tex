@@ -287,8 +287,7 @@ Similar versions of the simple hierarchical model were implemented in class, so 
 \caption{Traces for $\mu$ and the diagonal elements of $\Sigma$}
 \end{figure}
 
-The Gibbs sampler was also compared to the PyMC results. The posteriors looked very similar, except the posteriors for $\mu_2$ and $\Sigma_{22}$, as shown in Figure \ref{pymc1}. However, the posteriors for $\beta_2$ looked fairly similar as shown in Figure \ref{pymc2}. The differences may be due to the fact that the priors on $\sigma^2_i$ were different.
-
+The Gibbs sampler was also compared to the PyMC results. The posteriors looked almost identical despite the different priors used, as shown in Figures \ref{pymc1} and \ref{pymc2}. 
 \begin{figure}[!htb]\label{pymc1}
 \centering
 \includegraphics[width=.4\textwidth]{project/writeup/compare_gibbs_pymc1.png}
@@ -363,15 +362,15 @@ The first parameters of interest were the mean and diagonal terms for the covari
 \begin{tabular}{|l|r|r|r|}
 \hline
 \textbf{element}           & \multicolumn{1}{c|}{\textbf{0}} & \multicolumn{1}{c|}{\textbf{1}} & \multicolumn{1}{c|}{\textbf{2}} \\ \hline
-\textbf{$\mu$}             & -0.002                          & 0.001                           & 0.005                           \\ \hline
-\textbf{diagonal $\Sigma$} & 52.141                          & 0.041                           & 0.083                           \\ \hline
+\textbf{$\mu$}             & -0.078	& 0.03 &	0.179                          \\ \hline
+\textbf{diagonal $\Sigma$} & 48.957	& 0.04 & 	0.054                         \\ \hline
 
 \end{tabular}
 \caption{posterior means for $\mu$ and the diagonal elements of $\Sigma$.}
 \label{tab2}
 \end{table}
 
-The first mean is negative and the other two positive. This means that on average, $\beta_0$ is negative and $\beta_1$  and $\beta_2$ are positive. On average, the intercept, which is the percentage difference in incident counts between 2019 and 2020 not explained by mobility changes was negative. On average, an increase in park traffic resulted in an increase in incident compared to baseline. An increase in residential traffic/decrease in all other types of mobility resulted in a decrease in incident compared to baseline.  The first diagonal elements of the covariance is large, meaning that there is a strong department effect for $\beta_0$. It is smaller for the two other $\beta$, but nonetheless significant because it shows that some departments will have positive $\beta$ vectors while others will have negative $\beta$ vectors.\\
+The first mean is negative and the other two positive. This means that on average, $\beta_0$ is negative and $\beta_1$  and $\beta_2$ are positive. On average, the intercept, which is the percentage difference in incident counts between 2019 and 2020 not explained by mobility changes was negative. On average, an increase in park traffic resulted in an increase in incident compared to baseline. An increase in residential traffic/decrease in all other types of mobility resulted in a decrease in incident compared to baseline.  It is interesting to see that the posterior for $\mu_{2}$ only covers positive values, which is not the case for $\mu_{1}$. The first diagonal elements of the covariance is large, meaning that there is a strong department effect for $\beta_0$. It is smaller for the two other $\beta$. \\
 
 Figure \ref{all_betas} shows the posterior mean for the $\beta$ vector for each department, and Figure \ref{boxplot} shows the corresponding box plots. As expected from the fact that the first diagonal element of $\Sigma$ was large, the spread in $\beta_0$ across departments was significant. There are many variables which could explain a positive intercept: aging population, an unusually low baseline in 2019, decreasing population, covid EMS calls, growing population etc. A negative intercept may be explained by an unusually high baseline in 2019, decreasing population, etc. \\
 
