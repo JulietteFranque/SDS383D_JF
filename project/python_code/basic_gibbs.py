@@ -36,21 +36,21 @@ class GibbsSampler:
         return traces
 
     def _update_sigmas_squared(self):
-        alpha = self.number_obs_in_each_dept / 2
-        beta = np.array([0.5 * (self.y[dept] - self.X[dept]@self.betas[:, dept]).T @(self.y[dept] - self.X[dept]@self.betas[:, dept]) for dept in
+        alpha = np.ones(self.n_dept) * self.number_obs_in_each_dept / 2
+        beta = 0.5 * np.array([(self.y[dept] - self.X[dept]@self.betas[:, dept]).T @(self.y[dept] - self.X[dept]@self.betas[:, dept]) for dept in
                          range(self.n_dept)])
         sigmas = 1 / gamma(a=alpha, scale=1 / beta).rvs()
         self.sigmas_squared = sigmas
 
     def _update_mu(self):
-        mean = 1 / self.n_dept * np.mean(self.betas, axis=1)
+        mean = np.mean(self.betas, axis=1)
         cov = 1 / self.n_dept * np.diag(self.sigmas_diag)
-        self.mu = multivariate_normal(mean, cov, allow_singular=True).rvs()
+        self.mu = multivariate_normal(mean, cov).rvs()
 
     def _update_sigmas_diag(self):
-        alpha = (self.n_dept + 1) / 2
-        beta = 0.5 * (np.sum((self.betas - self.mu[:, None]) ** 2, axis=1) + 1)
-        self.sigmas_diag = 1 / gamma(a=alpha, scale=1 / beta).rvs()
+        alpha = np.ones(self.n_par) * (self.n_dept + 1) / 2
+        beta = 0.5 * (((self.betas.T - self.mu)**2).sum(axis=0) + 1)
+        self.sigmas_diag = 1 / gamma(a=alpha, scale=1/beta).rvs()
 
     def _update_betas(self):
         for dept_idx in range(self.n_dept):
@@ -58,7 +58,7 @@ class GibbsSampler:
             cov_mat_inv = 1/self.sigmas_squared[dept_idx] * np.eye(self.number_obs_in_each_dept[dept_idx])
             cov = np.linalg.inv(self.X[dept_idx].T @ cov_mat_inv @ self.X[dept_idx] + sigma_mat_inv)
             mean = cov @ (self.X[dept_idx].T @ cov_mat_inv @ self.y[dept_idx] + sigma_mat_inv @ self.mu)
-            self.betas[:, dept_idx] = multivariate_normal(mean, cov, allow_singular=True).rvs()
+            self.betas[:, dept_idx] = multivariate_normal(mean, cov).rvs()
 
     def fit(self):
         for it in tqdm(range(self.n_iter)):
