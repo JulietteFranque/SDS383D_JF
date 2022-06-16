@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# ignoring the data folder
+project/data
+project/pickle_traces
+
 # Distribution / packaging
 .Python
 build/
