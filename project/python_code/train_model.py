@@ -9,7 +9,7 @@ from scipy.stats import multivariate_normal, norm
 import pickle
 
 df = pd.read_csv('../formatted_data/transformed_data.csv')
-df = df[df['department_name'].isin(np.unique(df['department_name']))]
+#df = df[df['department_name'].isin(np.unique(df['department_name']))]
 grouped_df = df.groupby('department_name')
 groups = list(grouped_df.groups.keys())
 X_depts = list(grouped_df.apply(lambda x: np.array(x[['intercept', 'component_1', 'component_2']])))
@@ -40,10 +40,10 @@ with pm.Model() as model:
     y_ = pm.MvNormal('y', mu=means, cov=cov, shape=dist.shape[0], observed=df['avg_change_baseline_incidents'])
 
 with model:
-    trace = pm.sample(2500, tune=500, init='advi+adapt_diag', target_accept=.99, chains=4, return_inferencedata=False)
+    trace = pm.sample(5000, tune=500, init='advi+adapt_diag', target_accept=.99, chains=1, return_inferencedata=False)
 
 var_list = ['mus_beta', 'sigmas_squared_betas', 'betas', 'tau_s1', 'b_mean', 'b_var', 'b']
 traces_dict = [{var: trace.get_values(var)} for var in var_list]
 
-with open('traces.pickle', 'wb') as handle:
+with open('traces_1.pickle', 'wb') as handle:
     pickle.dump(traces_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
